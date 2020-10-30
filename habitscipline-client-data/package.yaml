@@ -1,0 +1,37 @@
+name:                habitscipline-client-data
+version:             0.0.0.0
+github:              "NorfairKing/habitscipline"
+license:             AllRightsReserved
+author:              "Tom Sydney Kerckhove"
+maintainer:          "syd@cs-syd.eu"
+copyright:           "Copyright (c) 2020 Tom Sydney Kerckhove"
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - habitscipline-api-server-data
+  - habitscipline-data
+  - mergeful
+  - mergeful-persistent
+  - persistent
+  - persistent-sqlite
+  - persistent-template
+  - safe
+  - text
+  - time
+
+tests:
+  habitscipline-client-data-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - genvalidity-hspec
+    - genvalidity-hspec-persistent
+    - hspec

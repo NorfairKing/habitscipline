@@ -1,0 +1,71 @@
+name:                habitscipline-cli
+version:             0.0.0.0
+github:              "NorfairKing/habitscipline"
+license:             AllRightsReserved
+author:              "Tom Sydney Kerckhove"
+maintainer:          "syd@cs-syd.eu"
+copyright:           "Copyright (c) 2020 Tom Sydney Kerckhove"
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+  - mergeful
+  - mergeful-persistent
+  - cookie
+  - envparse
+  - filelock
+  - http-client
+  - http-client-tls
+  - monad-logger
+  - mtl
+  - optparse-applicative
+  - path
+  - path-io
+  - persistent
+  - persistent-sqlite
+  - servant
+  - servant-auth-client
+  - servant-client
+  - habitscipline-api
+  - habitscipline-api-server-data
+  - habitscipline-client
+  - habitscipline-client-data
+  - habitscipline-data
+  - text
+  - yaml
+  - yamlparse-applicative
+
+executables:
+  habitscipline:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - habitscipline-cli
+
+tests:
+  habitscipline-cli-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - genvalidity
+    - genvalidity-hspec
+    - hspec
+    - path
+    - path-io
+    - servant-client
+    - habitscipline-api
+    - habitscipline-api-server-gen
+    - habitscipline-cli
+    - habitscipline-api-server-data
+    - text

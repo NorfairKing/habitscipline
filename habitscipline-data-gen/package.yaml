@@ -1,0 +1,40 @@
+name:                habitscipline-data-gen
+version:             0.0.0.0
+github:              "NorfairKing/habitscipline"
+license:             AllRightsReserved
+author:              "Tom Sydney Kerckhove"
+maintainer:          "syd@cs-syd.eu"
+copyright:           "Copyright (c) 2020 Tom Sydney Kerckhove"
+
+dependencies:
+- base >= 4.7 && < 5
+
+library:
+  source-dirs: src
+  dependencies:
+    - genvalidity
+    - genvalidity-bytestring
+    - genvalidity-containers
+    - genvalidity-path
+    - genvalidity-text
+    - genvalidity-time
+    - habitscipline-data
+    - text
+
+tests:
+  habitscipline-data-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - genvalidity-hspec
+    - genvalidity-hspec-persistent
+    - hspec
+    - path
+    - path-io
+    - habitscipline-data
+    - habitscipline-data-gen
+    - yamlparse-applicative
