@@ -1,0 +1,21 @@
+name: "Nix Build"
+on:
+  pull_request:
+  push:
+    branches:
+      - development
+      - master
+
+jobs:
+  hooks:
+    name: CI Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: cachix/install-nix-action@v11
+    - uses: cachix/cachix-action@v6
+      with:
+        name: habit
+        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+    - run: nix-build ci.nix
+
