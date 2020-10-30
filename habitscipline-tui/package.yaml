@@ -13,6 +13,7 @@ library:
   - persistent-sqlite
   - brick
   - cursor
+  - cursor-brick
   - directory
   - envparse
   - filelock

@@ -1,9 +1,7 @@
 module Habitscipline.TUI.Env where
 
 import Control.Monad.Reader
-import Database.Persist
 import Database.Persist.Sql
-import Habitscipline.Client.Data
 import Habitscipline.Data
 
 data Env

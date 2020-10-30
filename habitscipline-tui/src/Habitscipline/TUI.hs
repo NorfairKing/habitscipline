@@ -9,7 +9,6 @@ import Control.Concurrent.Async
 import Control.Monad.Logger
 import Control.Monad.Reader
 import qualified Data.Text as T
-import Database.Persist
 import Database.Persist.Sqlite
 import Graphics.Vty (defaultConfig, mkVty)
 import Habitscipline.Client.Data
@@ -34,7 +33,7 @@ habitsciplineTUI = do
     runNoLoggingT
       $ withSqlitePool (T.pack dbFile) 1
       $ \pool -> do
-        runSqlPool (runMigrationQuiet clientMigration) pool
+        _ <- runSqlPool (runMigrationQuiet clientMigration) pool
         liftIO $ do
           initialState <- buildInitialState
           reqChan <- newBChan 1000
@@ -65,7 +64,8 @@ tuiApp chan =
 
 buildInitialState :: IO State
 buildInitialState =
-  pure
-    State
-      { stateHabits = Loading
-      }
+  pure $
+    StateHabitList
+      HabitListState
+        { habitListStateHabits = Loading
+        }
