@@ -50,6 +50,9 @@ clientMakeHabit ClientHabit {..} = (clientHabitServerId, clientHabitServerTime, 
     goalDenominator = clientHabitGoalDenominator
     habitGoal = Goal {..}
 
+clientMakeHabit_ :: ClientHabit -> Habit
+clientMakeHabit_ = (\(_, _, h) -> h) . clientMakeHabit
+
 makeSyncedClientHabit :: ServerHabitId -> Timed Habit -> ClientHabit
 makeSyncedClientHabit sid (Timed Habit {..} st) = ClientHabit {..}
   where

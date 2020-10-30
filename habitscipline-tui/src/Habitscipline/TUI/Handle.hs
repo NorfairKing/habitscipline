@@ -14,10 +14,7 @@ handleTuiEvent chan s e =
     VtyEvent vtye ->
       case vtye of
         EvKey (KChar 'q') [] -> halt s
-        EvKey (KChar 'e') [] -> do
-          liftIO $ writeBChan chan Request
-          continue s
         _ -> continue s
     AppEvent resp -> case resp of
-      Response -> continue s
+      ResponseHabits hs -> continue $ s {stateHabits = Loaded hs}
     _ -> continue s

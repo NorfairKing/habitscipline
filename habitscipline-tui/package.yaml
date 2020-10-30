@@ -9,10 +9,17 @@ library:
   source-dirs: src
   dependencies:
   - async
+  - persistent
+  - persistent-sqlite
   - brick
   - cursor
   - directory
   - envparse
+  - filelock
+  - habitscipline-cli
+  - habitscipline-client-data
+  - habitscipline-data
+  - monad-logger
   - mtl
   - optparse-applicative
   - path

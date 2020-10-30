@@ -7,11 +7,13 @@
 module Habitscipline.TUI.OptParse where
 
 import Control.Applicative
+import Control.Monad.Logger
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Yaml
 import qualified Env
 import GHC.Generics (Generic)
+import Habitscipline.CLI.OptParse (getDefaultClientDatabase)
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
@@ -27,13 +29,17 @@ getSettings = do
 
 data Settings
   = Settings
-      { setPort :: Int -- Just an example
+      { settingDbFile :: Path Abs File,
+        settingLogLevel :: LogLevel
       }
   deriving (Show, Eq, Generic)
 
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
 combineToSettings Flags {..} Environment {..} mConf = do
-  let setPort = fromMaybe 8000 $ flagPort <|> envPort <|> mc confPort
+  settingDbFile <- case flagDbFile <|> envDbFile <|> mc configDbFile of
+    Nothing -> getDefaultClientDatabase
+    Just dbf -> resolveFile' dbf
+  let settingLogLevel = fromMaybe LevelWarn $ flagLogLevel <|> envLogLevel <|> mc configLogLevel
   pure Settings {..}
   where
     mc :: (Configuration -> Maybe a) -> Maybe a
@@ -41,7 +47,8 @@ combineToSettings Flags {..} Environment {..} mConf = do
 
 data Configuration
   = Configuration
-      { confPort :: Maybe Int
+      { configDbFile :: Maybe FilePath,
+        configLogLevel :: Maybe LogLevel
       }
   deriving (Show, Eq, Generic)
 
@@ -51,7 +58,9 @@ instance FromJSON Configuration where
 instance YamlSchema Configuration where
   yamlSchema =
     objectParser "Configuration" $
-      Configuration <$> optionalField "port" "Port"
+      Configuration
+        <$> optionalField "database" "The path to the database"
+        <*> optionalFieldWith "log-level" "The minimal severity for log messages" viaRead
 
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
 getConfiguration Flags {..} Environment {..} =
@@ -69,7 +78,8 @@ defaultConfigFile = do
 data Environment
   = Environment
       { envConfigFile :: Maybe FilePath,
-        envPort :: Maybe Int
+        envDbFile :: Maybe FilePath,
+        envLogLevel :: Maybe LogLevel
       }
   deriving (Show, Eq, Generic)
 
@@ -82,7 +92,8 @@ environmentParser =
   Env.prefixed "HABITSCIPLINE_" $
     Environment
       <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "Port")
+      <*> Env.var (fmap Just . Env.str) "DATABASE" (mE <> Env.help "Path to the database")
+      <*> Env.var (fmap Just . Env.auto) "LOG_LEVEL" (mE <> Env.help "Minimal severity for log messages")
   where
     mE = Env.def Nothing
 
@@ -113,7 +124,8 @@ flagsParser =
 data Flags
   = Flags
       { flagConfigFile :: Maybe FilePath,
-        flagPort :: Maybe Int
+        flagDbFile :: Maybe FilePath,
+        flagLogLevel :: Maybe LogLevel
       }
   deriving (Show, Eq, Generic)
 
@@ -130,12 +142,21 @@ parseFlags =
           )
       )
     <*> optional
+      ( strOption
+          ( mconcat
+              [ long "database",
+                help "Path to the database",
+                metavar "FILEPATH"
+              ]
+          )
+      )
+    <*> optional
       ( option
           auto
           ( mconcat
-              [ long "port",
-                help "Port",
-                metavar "PORT"
+              [ long "log-level",
+                help "Minimal severity level for log messages",
+                metavar "LOG_LEVEL"
               ]
           )
       )
