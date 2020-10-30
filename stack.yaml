@@ -25,7 +25,7 @@ extra-deps:
   - appendful-persistent
   - genvalidity-appendful
 - github: NorfairKing/mergeful
-  commit: 15af41c244ce733f5e514d04a770479baa409370
+  commit: 539ea04691309fb3f74461344ebdf389dc535a55
   subdirs:
   - mergeful
   - mergeful-persistent
