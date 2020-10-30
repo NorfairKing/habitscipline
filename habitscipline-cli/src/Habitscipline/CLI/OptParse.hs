@@ -23,8 +23,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Yaml
 import qualified Env
-import Habitscipline.API.Server.Data
 import GHC.Generics (Generic)
+import Habitscipline.API.Server.Data
 import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
