@@ -17,3 +17,8 @@ A local-first habit manager
   Setting a goal like "Fewer than X grams of sugar per month" will be more feasible than "No sugar, ever".
 * Positive habits can be dangerous when overdone.
   Setting a goal like "Go on three runs per week" may lead to an unhealthy amount of running like "every day" if the wrong incentives are put in place.
+
+## UX Goals
+
+* You should feel good about accomplishing your goals
+* You should _NOT_ feel terrible about not accomplishing your goals, or about relapsing.

@@ -1,7 +1,13 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
+
 module Habitscipline.TUI.State where
 
 import Cursor.Text
+import Data.Text (Text)
+import qualified Data.Text as T
 import Habitscipline.Data
+import Text.Read
 
 data State
   = StateHabitList HabitListState
@@ -26,6 +32,26 @@ data NewHabitState
       }
   deriving (Show)
 
+newHabitStateCompleteHabit :: NewHabitState -> Either Text Habit
+newHabitStateCompleteHabit NewHabitState {..} = do
+  let habitName = rebuildTextCursor newHabitStateName
+      habitDescription =
+        let t = rebuildTextCursor newHabitStateDescription
+         in if T.null t then Nothing else Just t
+      habitType = newHabitStateType
+  let parseWord d tc =
+        let t = rebuildTextCursor tc
+         in if T.null t
+              then pure d
+              else case readMaybe $ T.unpack t of
+                Nothing -> Left $ "Not a number: " <> t
+                Just w -> pure w
+  let goalUnit = rebuildTextCursor newHabitStateGoalUnit
+  goalNumerator <- parseWord 1 newHabitStateGoalNumerator
+  goalDenominator <- parseWord 1 newHabitStateGoalDenominator
+  let habitGoal = Goal {..}
+  pure Habit {..}
+
 data NewHabitStateSelection
   = SelectName
   | SelectDescription
@@ -33,6 +59,8 @@ data NewHabitStateSelection
   | SelectGoalUnit
   | SelectGoalNumerator
   | SelectGoalDenominator
+  | SelectCancelButton
+  | SelectCreateButton
   deriving (Show, Eq, Ord)
 
 data ResourceName = ResourceTextCursor

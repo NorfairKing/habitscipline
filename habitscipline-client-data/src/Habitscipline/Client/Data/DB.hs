@@ -53,13 +53,17 @@ clientMakeHabit ClientHabit {..} = (clientHabitServerId, clientHabitServerTime, 
 clientMakeHabit_ :: ClientHabit -> Habit
 clientMakeHabit_ = (\(_, _, h) -> h) . clientMakeHabit
 
+makeUnsyncedClientHabit :: Habit -> ClientHabit
+makeUnsyncedClientHabit = makeClientHabit Nothing Nothing
+
 makeSyncedClientHabit :: ServerHabitId -> Timed Habit -> ClientHabit
-makeSyncedClientHabit sid (Timed Habit {..} st) = ClientHabit {..}
+makeSyncedClientHabit sid (Timed h st) = makeClientHabit (Just sid) (Just st) h
+
+makeClientHabit :: Maybe ServerHabitId -> Maybe ServerTime -> Habit -> ClientHabit
+makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHabit {..}
   where
-    clientHabitServerId = Just sid
     clientHabitDeletedLocally = False
     clientHabitChangedLocally = False
-    clientHabitServerTime = Just st
     clientHabitName = habitName
     clientHabitDescription = habitDescription
     clientHabitType = habitType

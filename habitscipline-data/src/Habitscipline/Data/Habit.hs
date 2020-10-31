@@ -18,8 +18,8 @@ data Habit
   = Habit
       { habitName :: !Text,
         habitDescription :: !(Maybe Text),
-        habitType :: HabitType,
-        habitGoal :: Goal
+        habitType :: !HabitType,
+        habitGoal :: !Goal
       }
   deriving (Show, Eq, Ord, Generic)
 
@@ -76,8 +76,8 @@ instance PersistFieldSql HabitType where
 data Goal
   = Goal
       { goalUnit :: !Text, -- Trainings, Grams of sugar, ...
-        goalNumerator :: Word, -- How many of the unit
-        goalDenominator :: Word -- How many days
+        goalNumerator :: !Word, -- How many of the unit
+        goalDenominator :: !Word -- How many days
       }
   deriving (Show, Eq, Ord, Generic)
 

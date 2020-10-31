@@ -16,6 +16,8 @@ runDB func = do
   pool <- asks envConnectionPool
   liftIO $ runSqlPool func pool
 
-data Request = RequestHabits
+data Request
+  = RequestHabits
+  | RequestCreateHabit Habit
 
 data Response = ResponseHabits [Habit]
