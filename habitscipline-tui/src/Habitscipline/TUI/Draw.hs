@@ -9,6 +9,7 @@ import Brick.Markup
 import Brick.Types
 import Brick.Util
 import Brick.Widgets.Border
+import Brick.Widgets.Center
 import Brick.Widgets.Core
 import Cursor.Brick
 import Cursor.Text
@@ -39,7 +40,19 @@ drawTui = \case
   StateNewHabit nhs -> drawNewHabitState nhs
 
 drawHabitListState :: HabitListState -> [Widget ResourceName]
-drawHabitListState s = [strWrap $ show s]
+drawHabitListState HabitListState {..} =
+  [ hBox
+      [ case habitListStateHabits of
+          Loading -> centerLayer $ str "Loading"
+          Loaded hs ->
+            hBox
+              [ let habitLine = strWrap . show
+                 in vBox $ map habitLine hs,
+                vBorder,
+                strWrap "Description"
+              ]
+      ]
+  ]
 
 drawNewHabitState :: NewHabitState -> [Widget ResourceName]
 drawNewHabitState nhs@NewHabitState {..} =
