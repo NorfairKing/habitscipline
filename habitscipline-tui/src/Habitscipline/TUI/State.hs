@@ -3,6 +3,7 @@
 
 module Habitscipline.TUI.State where
 
+import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -16,7 +17,7 @@ data State
 
 data HabitListState
   = HabitListState
-      { habitListStateHabits :: Load [Habit]
+      { habitListStateHabits :: Load (Maybe (NonEmptyCursor Habit))
       }
   deriving (Show)
 

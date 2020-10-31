@@ -4,8 +4,10 @@ import Brick.BChan
 import Brick.Main
 import Brick.Types
 import Control.Monad.IO.Class
+import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Cursor.Types
+import qualified Data.List.NonEmpty as NE
 import Data.Maybe
 import Graphics.Vty.Input.Events
 import Habitscipline.Data
@@ -29,7 +31,7 @@ handleHabitListState chan s e =
         EvKey (KChar 'n') [] -> toNewHabit
         _ -> continue $ StateHabitList s
     AppEvent resp -> case resp of
-      ResponseHabits hs -> continue $ StateHabitList $ s {habitListStateHabits = Loaded hs}
+      ResponseHabits hs -> continue $ StateHabitList $ s {habitListStateHabits = Loaded $ makeNonEmptyCursor <$> NE.nonEmpty hs}
     _ -> continue $ StateHabitList s
 
 handleNewHabitState :: BChan Request -> NewHabitState -> BrickEvent n Response -> EventM n (Next State)
@@ -53,6 +55,8 @@ handleNewHabitState chan s e =
           EvKey KEsc [] -> toHabitList chan
           EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalUnit}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectDescription}
+          EvKey KLeft [] -> continue $ StateNewHabit $ s {newHabitStateType = PositiveHabit}
+          EvKey KRight [] -> continue $ StateNewHabit $ s {newHabitStateType = NegativeHabit}
           _ -> continue $ StateNewHabit s
       SelectGoalUnit ->
         case vtye of

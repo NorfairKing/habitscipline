@@ -12,7 +12,9 @@ import Brick.Widgets.Border
 import Brick.Widgets.Center
 import Brick.Widgets.Core
 import Cursor.Brick
+import Cursor.Simple.List.NonEmpty
 import Cursor.Text
+import qualified Data.Text as T
 import Graphics.Vty.Attributes
 import Habitscipline.Data
 import Habitscipline.TUI.State
@@ -44,13 +46,49 @@ drawHabitListState HabitListState {..} =
   [ hBox
       [ case habitListStateHabits of
           Loading -> centerLayer $ str "Loading"
-          Loaded hs ->
-            hBox
-              [ let habitLine = strWrap . show
-                 in vBox $ map habitLine hs,
-                vBorder,
-                strWrap "Description"
-              ]
+          Loaded mCursor -> case mCursor of
+            Nothing -> hCenterLayer $ str "No habits yet, press 'n' to create one."
+            Just cursor ->
+              hBox
+                [ let go = (: []) . txtWrap . habitName
+                   in padAll 1 $ verticalNonEmptyCursorTable go (map (withDefAttr selectedAttr) . go) go cursor,
+                  vBorder,
+                  let Habit {..} = nonEmptyCursorCurrent cursor
+                      Goal {..} = habitGoal
+                   in padAll 1 $
+                        vBox
+                          [ hBox [str "Name: ", withAttr nameAttr $ txtWrap habitName],
+                            hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txtWrap habitDescription],
+                            borderWithLabel (str "[ Goal ]") $ padLeftRight 1 $
+                              vBox
+                                [ hBox [str "Unit: ", txtWrap goalUnit],
+                                  hBox [str "Numerator: ", txtWrap (T.pack (show goalNumerator))],
+                                  hBox [str "Numerator: ", txtWrap (T.pack (show goalDenominator))],
+                                  padTop (Pad 1)
+                                    $ markup
+                                    $ mconcat
+                                    $ case habitType of
+                                      PositiveHabit ->
+                                        [ "I want to achieve ",
+                                          T.pack (show goalNumerator) @? numeratorAttr,
+                                          " ",
+                                          goalUnit @? unitAttr,
+                                          " every ",
+                                          T.pack (show goalDenominator) @? denominatorAttr,
+                                          " days."
+                                        ]
+                                      NegativeHabit ->
+                                        [ "I want to have at most ",
+                                          T.pack (show goalNumerator) @? numeratorAttr,
+                                          " ",
+                                          goalUnit @? unitAttr,
+                                          " every ",
+                                          T.pack (show goalDenominator) @? denominatorAttr,
+                                          " days."
+                                        ]
+                                ]
+                          ]
+                ]
       ]
   ]
 
