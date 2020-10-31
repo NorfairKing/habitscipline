@@ -24,12 +24,23 @@ handleHabitListState :: BChan Request -> HabitListState -> BrickEvent n Response
 handleHabitListState chan s e =
   case e of
     VtyEvent vtye ->
-      case vtye of
-        EvKey KEsc [] -> halt $ StateHabitList s
-        EvKey (KChar 'q') [] -> halt $ StateHabitList s
-        EvKey (KChar 'r') [] -> toHabitList chan -- refresh
-        EvKey (KChar 'n') [] -> toNewHabit
-        _ -> continue $ StateHabitList s
+      let cursorDo func = case habitListStateHabits s of
+            Loading -> continue $ StateHabitList s
+            Loaded mCursor -> case mCursor of
+              Nothing -> continue $ StateHabitList s
+              Just cursor ->
+                let cursor' = fromMaybe cursor $ func cursor
+                 in continue $ StateHabitList $ s {habitListStateHabits = Loaded $ Just cursor'}
+       in case vtye of
+            EvKey KEsc [] -> halt $ StateHabitList s
+            EvKey (KChar 'q') [] -> halt $ StateHabitList s
+            EvKey (KChar 'r') [] -> toHabitList chan -- refresh
+            EvKey (KChar 'n') [] -> toNewHabit
+            EvKey KDown [] -> cursorDo nonEmptyCursorSelectNext
+            EvKey (KChar 'j') [] -> cursorDo nonEmptyCursorSelectNext
+            EvKey KUp [] -> cursorDo nonEmptyCursorSelectPrev
+            EvKey (KChar 'k') [] -> cursorDo nonEmptyCursorSelectPrev
+            _ -> continue $ StateHabitList s
     AppEvent resp -> case resp of
       ResponseHabits hs -> continue $ StateHabitList $ s {habitListStateHabits = Loaded $ makeNonEmptyCursor <$> NE.nonEmpty hs}
     _ -> continue $ StateHabitList s

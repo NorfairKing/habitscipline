@@ -43,7 +43,7 @@ drawTui = \case
 
 drawHabitListState :: HabitListState -> [Widget ResourceName]
 drawHabitListState HabitListState {..} =
-  [ hBox
+  [ vBox
       [ case habitListStateHabits of
           Loading -> centerLayer $ str "Loading"
           Loaded mCursor -> case mCursor of
@@ -88,7 +88,9 @@ drawHabitListState HabitListState {..} =
                                         ]
                                 ]
                           ]
-                ]
+                ],
+        hBorder,
+        hCenterLayer $ str "Press 'n' to create a new habit"
       ]
   ]
 
