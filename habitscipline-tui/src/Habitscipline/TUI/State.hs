@@ -11,8 +11,13 @@ import Habitscipline.Data
 import Text.Read
 
 data State
-  = StateHabitList HabitListState
+  = StateHistory HistoryState
+  | StateHabitList HabitListState
   | StateNewHabit NewHabitState
+  deriving (Show)
+
+data HistoryState
+  = HistoryState
   deriving (Show)
 
 data HabitListState

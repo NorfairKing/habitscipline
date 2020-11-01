@@ -17,8 +17,19 @@ import Habitscipline.TUI.State
 handleTuiEvent :: BChan Request -> State -> BrickEvent n Response -> EventM n (Next State)
 handleTuiEvent chan s e =
   case s of
+    StateHistory hs -> handleHistoryState chan hs e
     StateHabitList hls -> handleHabitListState chan hls e
     StateNewHabit nhs -> handleNewHabitState chan nhs e
+
+handleHistoryState :: BChan Request -> HistoryState -> BrickEvent n Response -> EventM n (Next State)
+handleHistoryState _ s e =
+  case e of
+    VtyEvent vtye ->
+      case vtye of
+        EvKey KEsc [] -> halt $ StateHistory s
+        EvKey (KChar 'q') [] -> halt $ StateHistory s
+        _ -> continue $ StateHistory s
+    _ -> continue $ StateHistory s
 
 handleHabitListState :: BChan Request -> HabitListState -> BrickEvent n Response -> EventM n (Next State)
 handleHabitListState chan s e =

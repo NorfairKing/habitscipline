@@ -64,8 +64,8 @@ tuiApp chan =
 
 buildInitialState :: IO State
 buildInitialState =
-  pure $
-    StateHabitList
-      HabitListState
-        { habitListStateHabits = Loading
-        }
+  pure $ StateHistory HistoryState
+-- StateHabitList
+--   HabitListState
+--     { habitListStateHabits = Loading
+--     }

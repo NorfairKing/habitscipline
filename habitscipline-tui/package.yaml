@@ -9,9 +9,8 @@ library:
   source-dirs: src
   dependencies:
   - async
-  - persistent
-  - persistent-sqlite
   - brick
+  - containers
   - cursor
   - cursor-brick
   - directory
@@ -25,7 +24,10 @@ library:
   - optparse-applicative
   - path
   - path-io
+  - persistent
+  - persistent-sqlite
   - text
+  - time
   - vty
   - yaml
   - yamlparse-applicative
