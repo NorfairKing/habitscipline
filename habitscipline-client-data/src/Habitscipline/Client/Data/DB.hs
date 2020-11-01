@@ -14,6 +14,7 @@ module Habitscipline.Client.Data.DB where
 import Data.Mergeful
 import Data.Mergeful.Persistent ()
 import Data.Text (Text)
+import Data.Time
 import Database.Persist.Sqlite
 import Database.Persist.TH
 import Habitscipline.API.Server.Data
@@ -37,6 +38,17 @@ ClientHabit sql=habit
     goalDenominator Word
 
     deriving Show Eq
+
+ClientEntry sql=entry
+    serverId ServerEntryId Maybe
+    serverTime ServerTime Maybe
+    deletedLocally Bool
+    changedLocally Bool
+
+    day Day      -- Not modifyable
+    amount Word  -- Modifyable
+
+    UniqueClientEntryDay day
 |]
 
 clientMakeHabit :: ClientHabit -> (Maybe ServerHabitId, Maybe ServerTime, Habit)
@@ -71,3 +83,26 @@ makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHab
     clientHabitGoalUnit = goalUnit
     clientHabitGoalNumerator = goalNumerator
     clientHabitGoalDenominator = goalDenominator
+
+clientMakeEntry :: ClientEntry -> (Maybe ServerEntryId, Maybe ServerTime, Entry)
+clientMakeEntry ClientEntry {..} = (clientEntryServerId, clientEntryServerTime, Entry {..})
+  where
+    entryDay = clientEntryDay
+    entryAmount = clientEntryAmount
+
+clientMakeEntry_ :: ClientEntry -> Entry
+clientMakeEntry_ = (\(_, _, h) -> h) . clientMakeEntry
+
+makeUnsyncedClientEntry :: Entry -> ClientEntry
+makeUnsyncedClientEntry = makeClientEntry Nothing Nothing
+
+makeSyncedClientEntry :: ServerEntryId -> Timed Entry -> ClientEntry
+makeSyncedClientEntry sid (Timed h st) = makeClientEntry (Just sid) (Just st) h
+
+makeClientEntry :: Maybe ServerEntryId -> Maybe ServerTime -> Entry -> ClientEntry
+makeClientEntry clientEntryServerId clientEntryServerTime Entry {..} = ClientEntry {..}
+  where
+    clientEntryDeletedLocally = False
+    clientEntryChangedLocally = False
+    clientEntryDay = entryDay
+    clientEntryAmount = entryAmount

@@ -13,6 +13,8 @@ library:
   source-dirs: src
   dependencies:
     - aeson
+    - habitscipline-data
+    - habitscipline-data
     - mergeful
     - mergeful-persistent
     - password
@@ -20,11 +22,10 @@ library:
     - persistent
     - persistent-sqlite
     - persistent-template
-    - habitscipline-data
-    - habitscipline-data
     - text
     - time
     - validity
     - validity-persistent
     - validity-text
+    - validity-time
     - yamlparse-applicative

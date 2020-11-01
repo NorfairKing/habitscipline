@@ -85,9 +85,43 @@ instance FromJWT AuthCookie
 
 instance ToJWT AuthCookie
 
-type SyncRequest = Mergeful.SyncRequest ClientHabitId ServerHabitId Habit
+data SyncRequest
+  = SyncRequest
+      { syncRequestHabitSyncRequest :: Mergeful.SyncRequest ClientHabitId ServerHabitId Habit,
+        syncRequestEntrySyncRequest :: Mergeful.SyncRequest ClientEntryId ServerEntryId Entry
+      }
+  deriving (Show, Eq, Generic)
 
-type SyncResponse = Mergeful.SyncResponse ClientHabitId ServerHabitId Habit
+instance FromJSON SyncRequest where
+  parseJSON =
+    withObject "SyncRequest" $ \o ->
+      SyncRequest <$> o .: "habit" <*> o .: "entry"
+
+instance ToJSON SyncRequest where
+  toJSON SyncRequest {..} =
+    object
+      [ "habit" .= syncRequestHabitSyncRequest,
+        "entry" .= syncRequestEntrySyncRequest
+      ]
+
+data SyncResponse
+  = SyncResponse
+      { syncResponseHabitSyncResponse :: Mergeful.SyncResponse ClientHabitId ServerHabitId Habit,
+        syncResponseEntrySyncResponse :: Mergeful.SyncResponse ClientEntryId ServerEntryId Entry
+      }
+  deriving (Show, Eq, Generic)
+
+instance FromJSON SyncResponse where
+  parseJSON =
+    withObject "SyncResponse" $ \o ->
+      SyncResponse <$> o .: "habit" <*> o .: "entry"
+
+instance ToJSON SyncResponse where
+  toJSON SyncResponse {..} =
+    object
+      [ "habit" .= syncResponseHabitSyncResponse,
+        "entry" .= syncResponseEntrySyncResponse
+      ]
 
 instance (PersistEntity a, ToBackendKey SqlBackend a) => ToJSONKey (Key a) where
   toJSONKey = contramap fromSqlKey toJSONKey

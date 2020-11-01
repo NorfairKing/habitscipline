@@ -18,8 +18,10 @@ import Data.Mergeful.Persistent ()
 import Data.Password
 import Data.Password.Instances ()
 import Data.Text (Text)
+import Data.Time
 import Data.Validity
 import Data.Validity.Persist ()
+import Data.Validity.Time ()
 import Database.Persist.Sqlite
 import Database.Persist.TH
 import GHC.Generics (Generic)
@@ -53,6 +55,16 @@ ServerHabit sql=habit
 
   deriving Show Eq Ord Generic
 
+
+ServerEntry sql=entry
+  user UserId
+
+  serverTime ServerTime
+
+  day Day -- Not modifyable
+  amount Word
+
+  UniqueEntryDay user day
 |]
 
 instance Validity Salt where
@@ -90,3 +102,16 @@ makeServerHabit serverHabitUser Habit {..} = ServerHabit {..}
     serverHabitGoalUnit = goalUnit
     serverHabitGoalNumerator = goalNumerator
     serverHabitGoalDenominator = goalDenominator
+
+serverMakeEntry :: ServerEntry -> Timed Entry
+serverMakeEntry ServerEntry {..} = Timed Entry {..} serverEntryServerTime
+  where
+    entryAmount = serverEntryAmount
+    entryDay = serverEntryDay
+
+makeServerEntry :: UserId -> Entry -> ServerEntry
+makeServerEntry serverEntryUser Entry {..} = ServerEntry {..}
+  where
+    serverEntryServerTime = initialServerTime
+    serverEntryAmount = entryAmount
+    serverEntryDay = entryDay

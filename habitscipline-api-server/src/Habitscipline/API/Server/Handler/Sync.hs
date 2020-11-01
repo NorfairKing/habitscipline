@@ -7,8 +7,8 @@ import Database.Persist
 import Habitscipline.API.Server.Handler.Import
 
 handlePostSync :: AuthCookie -> SyncRequest -> H SyncResponse
-handlePostSync AuthCookie {..} sr = withUser authCookieUsername $ \(Entity uid _) ->
-  runDB $
+handlePostSync AuthCookie {..} SyncRequest {..} = withUser authCookieUsername $ \(Entity uid _) -> runDB $ do
+  syncResponseHabitSyncResponse <-
     serverProcessSyncQuery
       ServerHabitServerTime
       [ServerHabitUser ==. uid]
@@ -24,4 +24,16 @@ handlePostSync AuthCookie {..} sr = withUser authCookieUsername $ \(Entity uid _
                 ServerHabitGoalDenominator =. goalDenominator
               ]
       )
-      sr
+      syncRequestHabitSyncRequest
+  syncResponseEntrySyncResponse <-
+    serverProcessSyncQuery
+      ServerEntryServerTime
+      [ServerEntryUser ==. uid]
+      serverMakeEntry
+      (const (makeServerEntry uid))
+      ( \Entry {..} ->
+          [ ServerEntryAmount =. entryAmount
+          ]
+      )
+      syncRequestEntrySyncRequest
+  pure SyncResponse {..}
