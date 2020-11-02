@@ -27,7 +27,7 @@ buildAttrMap =
   const $
     attrMap
       defAttr
-      [ (nameAttr, fg white),
+      [ (nameAttr, fg yellow),
         (descriptionAttr, defAttr),
         (typeAttr, fg yellow),
         (unitAttr, fg green),
@@ -63,11 +63,11 @@ drawHistoryState HistoryState {..} =
                 monthHeader d =
                   let (_, month, md) = toGregorian d
                    in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" month) else str "  "
-                monthsHeader = str " " : map monthHeader days
+                monthsHeader = map monthHeader days ++ [str " "]
                 dayHeader d =
                   let (_, _, md) = toGregorian d
                    in withDefAttr (if d == historyStateToday then todayAttr else headerAttr) $ str (printf "%2d" md)
-                daysHeader = str " " : map dayHeader days
+                daysHeader = map dayHeader days ++ [str " "]
                 isSelectedDay = (== historyStateDay)
                 isSelectedHabit h =
                   case historyStateHabitCursor of
@@ -95,7 +95,7 @@ drawHistoryState HistoryState {..} =
                    in case mAmount of
                         Nothing -> amountWidget Nothing
                         Just a -> goodModifier a $ amountWidget $ Just a
-                habitRow h em = txt (habitName h) : map (amountCell h em) days
+                habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
              in padBottom Max $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
             hBorder,
             padTop Max $ str "Detailed stats per habit"
