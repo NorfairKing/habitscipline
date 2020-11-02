@@ -28,6 +28,7 @@ library:
   - persistent-sqlite
   - text
   - time
+  - typed-uuid
   - vty
   - yaml
   - yamlparse-applicative

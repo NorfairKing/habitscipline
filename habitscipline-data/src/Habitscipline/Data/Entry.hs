@@ -14,10 +14,12 @@ import Data.Validity.Containers ()
 import Data.Validity.Text ()
 import Data.Validity.Time ()
 import GHC.Generics (Generic)
+import Habitscipline.Data.Habit
 
 data Entry
   = Entry
-      { entryDay :: !Day,
+      { entryHabit :: HabitUuid,
+        entryDay :: !Day,
         entryAmount :: !Word
       }
   deriving (Show, Eq, Ord, Generic)
@@ -27,13 +29,15 @@ instance Validity Entry
 instance FromJSON Entry where
   parseJSON = withObject "Entry" $ \o ->
     Entry
-      <$> o .: "day"
+      <$> o .: "habit"
+      <*> o .: "day"
       <*> o .: "amount"
 
 instance ToJSON Entry where
   toJSON Entry {..} =
     object
-      [ "day" .= entryDay,
+      [ "habit" .= entryHabit,
+        "day" .= entryDay,
         "amount" .= entryAmount
       ]
 

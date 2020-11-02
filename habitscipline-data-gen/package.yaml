@@ -18,6 +18,7 @@ library:
     - genvalidity-path
     - genvalidity-text
     - genvalidity-time
+    - genvalidity-typed-uuid
     - habitscipline-data
     - text
 

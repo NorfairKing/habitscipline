@@ -9,6 +9,7 @@ import Cursor.Text
 import Cursor.Types
 import qualified Data.List.NonEmpty as NE
 import Data.Maybe
+import Data.UUID.Typed
 import Graphics.Vty.Input.Events
 import Habitscipline.Data
 import Habitscipline.TUI.Env
@@ -22,13 +23,16 @@ handleTuiEvent chan s e =
     StateNewHabit nhs -> handleNewHabitState chan nhs e
 
 handleHistoryState :: BChan Request -> HistoryState -> BrickEvent n Response -> EventM n (Next State)
-handleHistoryState _ s e =
+handleHistoryState chan s e =
   case e of
     VtyEvent vtye ->
       case vtye of
         EvKey KEsc [] -> halt $ StateHistory s
         EvKey (KChar 'q') [] -> halt $ StateHistory s
+        EvKey (KChar 'h') [] -> toHabitList chan
         _ -> continue $ StateHistory s
+    AppEvent resp -> case resp of
+      ResponseHistory hms -> continue $ StateHistory $ s {historyStateHabitMaps = Loaded hms}
     _ -> continue $ StateHistory s
 
 handleHabitListState :: BChan Request -> HabitListState -> BrickEvent n Response -> EventM n (Next State)
@@ -45,7 +49,8 @@ handleHabitListState chan s e =
        in case vtye of
             EvKey KEsc [] -> halt $ StateHabitList s
             EvKey (KChar 'q') [] -> halt $ StateHabitList s
-            EvKey (KChar 'r') [] -> toHabitList chan -- refresh
+            EvKey (KChar 'r') [] -> toHabitList chan
+            EvKey (KChar 'h') [] -> toHistory chan
             EvKey (KChar 'n') [] -> toNewHabit
             EvKey KDown [] -> cursorDo nonEmptyCursorSelectNext
             EvKey (KChar 'j') [] -> cursorDo nonEmptyCursorSelectNext
@@ -108,8 +113,9 @@ handleNewHabitState chan s e =
       SelectCreateButton ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
-          EvKey KEnter [] ->
-            case newHabitStateCompleteHabit s of
+          EvKey KEnter [] -> do
+            uuid <- liftIO nextRandomUUID
+            case newHabitStateCompleteHabit uuid s of
               Left _ -> continue $ StateNewHabit s
               Right h -> do
                 liftIO $ writeBChan chan $ RequestCreateHabit h
@@ -131,6 +137,11 @@ handleTC tc e =
           EvKey KRight [] -> textDo textCursorSelectNext
           _ -> continue tc
         _ -> continue tc
+
+toHistory :: BChan Request -> EventM n (Next State)
+toHistory chan = do
+  liftIO $ writeBChan chan RequestHistory
+  continue $ StateHistory $ HistoryState {historyStateHabitMaps = Loading}
 
 toHabitList :: BChan Request -> EventM n (Next State)
 toHabitList chan = do

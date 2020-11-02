@@ -57,15 +57,14 @@ tuiApp chan =
       appChooseCursor = showFirstCursor,
       appHandleEvent = handleTuiEvent chan,
       appStartEvent = \s -> do
-        liftIO $ writeBChan chan RequestHabits
+        liftIO $ writeBChan chan RequestHistory
         pure s,
       appAttrMap = buildAttrMap
     }
 
 buildInitialState :: IO State
 buildInitialState =
-  pure $ StateHistory HistoryState
--- StateHabitList
---   HabitListState
---     { habitListStateHabits = Loading
---     }
+  pure $ StateHistory $
+    HistoryState
+      { historyStateHabitMaps = Loading
+      }

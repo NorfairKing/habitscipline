@@ -5,6 +5,7 @@ module Habitscipline.TUI.State where
 
 import Cursor.Simple.List.NonEmpty
 import Cursor.Text
+import Data.Map (Map)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Habitscipline.Data
@@ -18,6 +19,8 @@ data State
 
 data HistoryState
   = HistoryState
+      { historyStateHabitMaps :: Load (Map Habit EntryMap)
+      }
   deriving (Show)
 
 data HabitListState
@@ -38,8 +41,8 @@ data NewHabitState
       }
   deriving (Show)
 
-newHabitStateCompleteHabit :: NewHabitState -> Either Text Habit
-newHabitStateCompleteHabit NewHabitState {..} = do
+newHabitStateCompleteHabit :: HabitUuid -> NewHabitState -> Either Text Habit
+newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
   let habitName = rebuildTextCursor newHabitStateName
       habitDescription =
         let t = rebuildTextCursor newHabitStateDescription

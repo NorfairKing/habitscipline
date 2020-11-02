@@ -46,6 +46,7 @@ ServerHabit sql=habit
 
   serverTime ServerTime
 
+  uuid HabitUuid -- Not modifyable
   name Text
   description Text Maybe
   type HabitType
@@ -61,6 +62,7 @@ ServerEntry sql=entry
 
   serverTime ServerTime
 
+  habit HabitUuid -- Not modifyable
   day Day -- Not modifyable
   amount Word
 
@@ -83,6 +85,7 @@ instance Validity ServerHabit
 serverMakeHabit :: ServerHabit -> Timed Habit
 serverMakeHabit ServerHabit {..} = Timed Habit {..} serverHabitServerTime
   where
+    habitUuid = serverHabitUuid
     habitName = serverHabitName
     habitDescription = serverHabitDescription
     habitType = serverHabitType
@@ -94,6 +97,7 @@ serverMakeHabit ServerHabit {..} = Timed Habit {..} serverHabitServerTime
 makeServerHabit :: UserId -> Habit -> ServerHabit
 makeServerHabit serverHabitUser Habit {..} = ServerHabit {..}
   where
+    serverHabitUuid = habitUuid
     serverHabitServerTime = initialServerTime
     serverHabitName = habitName
     serverHabitDescription = habitDescription
@@ -106,6 +110,7 @@ makeServerHabit serverHabitUser Habit {..} = ServerHabit {..}
 serverMakeEntry :: ServerEntry -> Timed Entry
 serverMakeEntry ServerEntry {..} = Timed Entry {..} serverEntryServerTime
   where
+    entryHabit = serverEntryHabit
     entryAmount = serverEntryAmount
     entryDay = serverEntryDay
 
@@ -113,5 +118,6 @@ makeServerEntry :: UserId -> Entry -> ServerEntry
 makeServerEntry serverEntryUser Entry {..} = ServerEntry {..}
   where
     serverEntryServerTime = initialServerTime
+    serverEntryHabit = entryHabit
     serverEntryAmount = entryAmount
     serverEntryDay = entryDay

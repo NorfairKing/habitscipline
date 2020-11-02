@@ -1,6 +1,7 @@
 module Habitscipline.TUI.Env where
 
 import Control.Monad.Reader
+import Data.Map (Map)
 import Database.Persist.Sql
 import Habitscipline.Data
 
@@ -17,7 +18,10 @@ runDB func = do
   liftIO $ runSqlPool func pool
 
 data Request
-  = RequestHabits
+  = RequestHistory
+  | RequestHabits
   | RequestCreateHabit Habit
 
-data Response = ResponseHabits [Habit]
+data Response
+  = ResponseHistory !(Map Habit EntryMap)
+  | ResponseHabits ![Habit]

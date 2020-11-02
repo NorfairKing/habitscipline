@@ -30,6 +30,7 @@ ClientHabit sql=habit
     deletedLocally Bool
     changedLocally Bool
 
+    uuid HabitUuid -- Not modifyable
     name Text
     description Text Maybe
     type HabitType
@@ -45,7 +46,8 @@ ClientEntry sql=entry
     deletedLocally Bool
     changedLocally Bool
 
-    day Day      -- Not modifyable
+    habit HabitUuid -- Not modifyable
+    day Day -- Not modifyable
     amount Word  -- Modifyable
 
     UniqueClientEntryDay day
@@ -54,6 +56,7 @@ ClientEntry sql=entry
 clientMakeHabit :: ClientHabit -> (Maybe ServerHabitId, Maybe ServerTime, Habit)
 clientMakeHabit ClientHabit {..} = (clientHabitServerId, clientHabitServerTime, Habit {..})
   where
+    habitUuid = clientHabitUuid
     habitName = clientHabitName
     habitDescription = clientHabitDescription
     habitType = clientHabitType
@@ -76,6 +79,7 @@ makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHab
   where
     clientHabitDeletedLocally = False
     clientHabitChangedLocally = False
+    clientHabitUuid = habitUuid
     clientHabitName = habitName
     clientHabitDescription = habitDescription
     clientHabitType = habitType
@@ -87,6 +91,7 @@ makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHab
 clientMakeEntry :: ClientEntry -> (Maybe ServerEntryId, Maybe ServerTime, Entry)
 clientMakeEntry ClientEntry {..} = (clientEntryServerId, clientEntryServerTime, Entry {..})
   where
+    entryHabit = clientEntryHabit
     entryDay = clientEntryDay
     entryAmount = clientEntryAmount
 
@@ -104,5 +109,6 @@ makeClientEntry clientEntryServerId clientEntryServerTime Entry {..} = ClientEnt
   where
     clientEntryDeletedLocally = False
     clientEntryChangedLocally = False
+    clientEntryHabit = entryHabit
     clientEntryDay = entryDay
     clientEntryAmount = entryAmount

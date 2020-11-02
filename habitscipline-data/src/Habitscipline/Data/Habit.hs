@@ -2,21 +2,38 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Habitscipline.Data.Habit where
 
 import Data.Aeson
+import Data.ByteString (ByteString)
 import Data.Proxy
 import Data.Text (Text)
+import Data.UUID.Typed
 import Data.Validity
 import Data.Validity.Text ()
 import Database.Persist
 import Database.Persist.Sql
 import GHC.Generics (Generic)
 
+instance PersistField (UUID a) where
+  toPersistValue uuid = toPersistValue $ uuidASCIIBytes uuid
+  fromPersistValue pv = do
+    bs <- fromPersistValue pv
+    case parseUUIDAsciiBytes bs of
+      Nothing -> Left "Invalidy Bytestring to convert to UUID"
+      Just uuid -> pure uuid
+
+instance PersistFieldSql (UUID a) where
+  sqlType Proxy = sqlType (Proxy :: Proxy ByteString)
+
+type HabitUuid = UUID Habit
+
 data Habit
   = Habit
-      { habitName :: !Text,
+      { habitUuid :: !HabitUuid,
+        habitName :: !Text,
         habitDescription :: !(Maybe Text),
         habitType :: !HabitType,
         habitGoal :: !Goal
@@ -28,7 +45,8 @@ instance Validity Habit
 instance FromJSON Habit where
   parseJSON = withObject "Habit" $ \o ->
     Habit
-      <$> o .: "name"
+      <$> o .: "uuid"
+      <*> o .: "name"
       <*> o .:? "description"
       <*> o .: "type"
       <*> o .: "goal"
@@ -36,7 +54,8 @@ instance FromJSON Habit where
 instance ToJSON Habit where
   toJSON Habit {..} =
     object
-      [ "name" .= habitName,
+      [ "uuid" .= habitUuid,
+        "name" .= habitName,
         "description" .= habitDescription,
         "type" .= habitType,
         "goal" .= habitGoal

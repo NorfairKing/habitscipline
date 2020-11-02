@@ -4,6 +4,7 @@ module Habitscipline.Data.Habit.Gen where
 
 import Data.GenValidity
 import Data.GenValidity.Text ()
+import Data.GenValidity.UUID.Typed ()
 import Habitscipline.Data.Habit
 
 instance GenValid Habit where

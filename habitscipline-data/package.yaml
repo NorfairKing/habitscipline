@@ -27,6 +27,7 @@ library:
     - safe
     - text
     - time
+    - typed-uuid
     - validity
     - validity-bytestring
     - validity-containers
