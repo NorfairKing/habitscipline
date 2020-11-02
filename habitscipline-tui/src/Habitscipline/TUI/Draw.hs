@@ -39,9 +39,8 @@ buildAttrMap =
         (createButtonAttr, fg green),
         (headerAttr, withStyle defAttr underline),
         (goodAttr, fg green),
-        (selectedBothAttr, bg white),
-        (selectedHabitAttr, bg black),
-        (selectedDayAttr, bg black)
+        (todayAttr, fg magenta),
+        (selectedBothAttr, bg white)
       ]
 
 drawTui :: State -> [Widget ResourceName]
@@ -67,15 +66,13 @@ drawHistoryState HistoryState {..} =
                 monthsHeader = str " " : map monthHeader days
                 dayHeader d =
                   let (_, _, md) = toGregorian d
-                   in selectedDayModifier d $ withDefAttr headerAttr $ str (printf "%2d" md)
+                   in withDefAttr (if d == historyStateToday then todayAttr else headerAttr) $ str (printf "%2d" md)
                 daysHeader = str " " : map dayHeader days
                 isSelectedDay = (== historyStateDay)
-                selectedDayModifier d = if isSelectedDay d then withAttr selectedDayAttr else id
                 isSelectedHabit h =
                   case historyStateHabitCursor of
                     Loading -> False
                     Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
-                selectedHabitModifier h = if isSelectedHabit h then withAttr selectedHabitAttr else id
                 amountCell h em d =
                   let showAmount :: Word -> String
                       showAmount = printf "%2d"
@@ -89,16 +86,16 @@ drawHistoryState HistoryState {..} =
                       mAmount = case entryMapLookup em d of
                         Exactly w -> Just w
                         NoDataBeforeFirst -> Nothing
-                        NoDataAfterLast -> Nothing
+                        NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
                         AssumedZero -> Just 0
                       isGood a = case habitType h of
                         PositiveHabit -> a > 0
                         NegativeHabit -> a <= 0
                       goodModifier a = if isGood a then withAttr goodAttr else id
-                   in selectedDayModifier d $ case mAmount of
+                   in case mAmount of
                         Nothing -> amountWidget Nothing
                         Just a -> goodModifier a $ amountWidget $ Just a
-                habitRow h em = map (selectedHabitModifier h) $ txt (habitName h) : map (amountCell h em) days
+                habitRow h em = txt (habitName h) : map (amountCell h em) days
              in padBottom Max $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
             hBorder,
             padTop Max $ str "Detailed stats per habit"
@@ -270,11 +267,8 @@ headerAttr = "header"
 goodAttr :: AttrName
 goodAttr = "good"
 
+todayAttr :: AttrName
+todayAttr = "today"
+
 selectedBothAttr :: AttrName
 selectedBothAttr = "selected-both"
-
-selectedHabitAttr :: AttrName
-selectedHabitAttr = "selected-habit"
-
-selectedDayAttr :: AttrName
-selectedDayAttr = "selected-day"

@@ -39,7 +39,7 @@ handleHistoryState chan s e =
                 let cursor' = fromMaybe cursor $ func cursor
                  in continue $ StateHistory $ s {historyStateHabitCursor = Loaded $ Just cursor'}
           dayDo func =
-            let d = func $ historyStateDay s
+            let d = min (historyStateToday s) $ func $ historyStateDay s
              in continue $ StateHistory $
                   s
                     { historyStateDay = d,
@@ -194,6 +194,7 @@ toHistory chan = do
       { historyStateHabitMaps = Loading,
         historyStateHabitCursor = Loading,
         historyStateAmountCursor = emptyTextCursor,
+        historyStateToday = today,
         historyStateDay = today,
         historyStateMaxDay = today
       }

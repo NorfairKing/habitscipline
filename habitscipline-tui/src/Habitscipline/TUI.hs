@@ -24,7 +24,6 @@ import Path
 import Path.IO
 import System.Exit
 import System.FileLock
-import Text.Show.Pretty
 
 habitsciplineTUI :: IO ()
 habitsciplineTUI = do
@@ -47,8 +46,8 @@ habitsciplineTUI = do
           let env = Env {envConnectionPool = pool}
           let runWorker = runReaderT (tuiWorker reqChan respChan) env
           -- Left always works because the worker runs forever
-          Left endState <- race runTui runWorker
-          pPrint endState
+          Left _ <- race runTui runWorker
+          pure ()
   case mLocked of
     Just () -> pure () -- Everything went file
     Nothing -> die "Unable to lock habit database."
@@ -73,6 +72,7 @@ buildInitialState = do
       { historyStateHabitMaps = Loading,
         historyStateHabitCursor = Loading,
         historyStateAmountCursor = emptyTextCursor,
+        historyStateToday = today,
         historyStateDay = today,
         historyStateMaxDay = today
       }

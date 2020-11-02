@@ -58,8 +58,8 @@ data DayAmount
 entryMapLookup :: EntryMap -> Day -> DayAmount
 entryMapLookup (EntryMap m) d = case M.lookup d m of
   Just w -> Exactly w
-  Nothing -> case M.lookupGE d m of
-    Nothing -> NoDataAfterLast
-    Just _ -> case M.lookupLE d m of
-      Nothing -> NoDataBeforeFirst
-      Just _ -> AssumedZero
+  Nothing -> case (M.lookupGE d m, M.lookupLE d m) of
+    (Nothing, Nothing) -> NoDataBeforeFirst
+    (Nothing, Just _) -> NoDataAfterLast
+    (Just _, Nothing) -> NoDataBeforeFirst
+    (Just _, Just _) -> AssumedZero

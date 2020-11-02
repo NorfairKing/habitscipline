@@ -26,7 +26,6 @@ library:
   - path-io
   - persistent
   - persistent-sqlite
-  - pretty-show
   - text
   - time
   - typed-uuid

@@ -23,6 +23,7 @@ data HistoryState
       { historyStateHabitMaps :: !(Load (Map Habit EntryMap)),
         historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor HabitUuid))),
         historyStateAmountCursor :: !TextCursor,
+        historyStateToday :: !Day,
         historyStateDay :: !Day,
         historyStateMaxDay :: !Day
       }
