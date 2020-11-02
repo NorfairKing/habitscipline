@@ -20,7 +20,8 @@ runDB func = do
 data Request
   = RequestHistory
   | RequestHabits
-  | RequestCreateHabit Habit
+  | RequestSetEntry !Entry
+  | RequestCreateHabit !Habit
 
 data Response
   = ResponseHistory !(Map Habit EntryMap)

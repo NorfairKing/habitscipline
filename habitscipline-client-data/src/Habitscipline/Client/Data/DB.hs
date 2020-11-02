@@ -50,7 +50,7 @@ ClientEntry sql=entry
     day Day -- Not modifyable
     amount Word  -- Modifyable
 
-    UniqueClientEntryDay day
+    UniqueClientEntryDay habit day
 |]
 
 clientMakeHabit :: ClientHabit -> (Maybe ServerHabitId, Maybe ServerTime, Habit)

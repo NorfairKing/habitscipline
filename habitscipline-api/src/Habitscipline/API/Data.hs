@@ -92,6 +92,8 @@ data SyncRequest
       }
   deriving (Show, Eq, Generic)
 
+instance Validity SyncRequest
+
 instance FromJSON SyncRequest where
   parseJSON =
     withObject "SyncRequest" $ \o ->
@@ -110,6 +112,8 @@ data SyncResponse
         syncResponseEntrySyncResponse :: Mergeful.SyncResponse ClientEntryId ServerEntryId Entry
       }
   deriving (Show, Eq, Generic)
+
+instance Validity SyncResponse
 
 instance FromJSON SyncResponse where
   parseJSON =

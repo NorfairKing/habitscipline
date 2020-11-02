@@ -7,14 +7,15 @@ import Data.GenValidity.Appendful ()
 import Data.GenValidity.Text ()
 import Habitscipline.API.Data
 import Habitscipline.API.Server.Data.Gen ()
+import Habitscipline.Data.Gen ()
 
 instance GenValid RegistrationForm where
-  genValid = genValidStructurallyWithoutExtraChecking
-  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
 
 instance GenValid LoginForm where
-  genValid = genValidStructurallyWithoutExtraChecking
-  shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
+  genValid = genValidStructurally
+  shrinkValid = shrinkValidStructurally
 
 instance GenValid SyncRequest where
   genValid = genValidStructurallyWithoutExtraChecking

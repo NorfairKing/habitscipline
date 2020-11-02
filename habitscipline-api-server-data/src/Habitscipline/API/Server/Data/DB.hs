@@ -66,7 +66,7 @@ ServerEntry sql=entry
   day Day -- Not modifyable
   amount Word
 
-  UniqueEntryDay user day
+  UniqueEntryDay habit user day
 |]
 
 instance Validity Salt where

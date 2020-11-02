@@ -10,6 +10,7 @@ import Cursor.Types
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
 import Data.Maybe
+import qualified Data.Text as T
 import Data.Time
 import Data.UUID.Typed
 import Graphics.Vty.Input.Events
@@ -17,6 +18,7 @@ import Habitscipline.Data
 import Habitscipline.TUI.Draw
 import Habitscipline.TUI.Env
 import Habitscipline.TUI.State
+import Text.Read
 
 handleTuiEvent :: BChan Request -> State -> BrickEvent n Response -> EventM n (Next State)
 handleTuiEvent chan s e =
@@ -45,6 +47,19 @@ handleHistoryState chan s e =
                     }
        in case vtye of
             EvKey KEsc [] -> halt $ StateHistory s
+            EvKey KEnter [] ->
+              case historyStateHabitCursor s of
+                Loaded (Just nec) -> case readMaybe $ T.unpack $ rebuildTextCursor $ historyStateAmountCursor s of
+                  Just amount -> do
+                    liftIO $ writeBChan chan $ RequestSetEntry $
+                      Entry
+                        { entryHabit = nonEmptyCursorCurrent nec,
+                          entryDay = historyStateDay s,
+                          entryAmount = amount
+                        }
+                    continue $ StateHistory $ s {historyStateAmountCursor = emptyTextCursor}
+                  Nothing -> continue $ StateHistory s
+                _ -> continue $ StateHistory s
             EvKey (KChar 'q') [] -> halt $ StateHistory s
             EvKey (KChar 'h') [] -> toHabitList chan
             EvKey KDown [] -> cursorDo nonEmptyCursorSelectNext
@@ -53,14 +68,17 @@ handleHistoryState chan s e =
             EvKey (KChar 'k') [] -> cursorDo nonEmptyCursorSelectPrev
             EvKey KLeft [] -> dayDo $ addDays (-1)
             EvKey KRight [] -> dayDo $ addDays 1
-            _ -> continue $ StateHistory s
+            _ -> fmap (\tc -> StateHistory $ s {historyStateAmountCursor = tc}) <$> handleTC (historyStateAmountCursor s) e
     AppEvent resp -> case resp of
       ResponseHistory hms ->
         continue $ StateHistory $
           s
             { historyStateHabitMaps = Loaded hms,
-              historyStateHabitCursor = Loaded $ makeNonEmptyCursor <$> NE.nonEmpty (M.keys hms)
+              historyStateHabitCursor = case historyStateHabitCursor s of
+                Loaded c -> Loaded c -- Don't reload the cursor if it was already loaded
+                Loading -> Loaded $ makeNonEmptyCursor . fmap habitUuid <$> NE.nonEmpty (M.keys hms)
             }
+      _ -> continue $ StateHistory s
     _ -> continue $ StateHistory s
 
 handleHabitListState :: BChan Request -> HabitListState -> BrickEvent n Response -> EventM n (Next State)
@@ -87,6 +105,7 @@ handleHabitListState chan s e =
             _ -> continue $ StateHabitList s
     AppEvent resp -> case resp of
       ResponseHabits hs -> continue $ StateHabitList $ s {habitListStateHabits = Loaded $ makeNonEmptyCursor <$> NE.nonEmpty hs}
+      _ -> continue $ StateHabitList s
     _ -> continue $ StateHabitList s
 
 handleNewHabitState :: BChan Request -> NewHabitState -> BrickEvent n Response -> EventM n (Next State)

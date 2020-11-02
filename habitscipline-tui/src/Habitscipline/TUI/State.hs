@@ -21,7 +21,7 @@ data State
 data HistoryState
   = HistoryState
       { historyStateHabitMaps :: !(Load (Map Habit EntryMap)),
-        historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor Habit))),
+        historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor HabitUuid))),
         historyStateAmountCursor :: !TextCursor,
         historyStateDay :: !Day,
         historyStateMaxDay :: !Day

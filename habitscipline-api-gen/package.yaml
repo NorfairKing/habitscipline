@@ -17,6 +17,7 @@ library:
     - genvalidity-text
     - habitscipline-api
     - habitscipline-api-server-data-gen
+    - habitscipline-data-gen
     - text
 
 tests:

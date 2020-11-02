@@ -14,11 +14,7 @@ import Brick.Widgets.Core
 import Cursor.Brick
 import Cursor.Simple.List.NonEmpty
 import Cursor.Text
-import Data.Map (Map)
 import qualified Data.Map as M
-import qualified Data.Set as S
-import Data.Set (Set)
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
 import Graphics.Vty.Attributes
@@ -66,8 +62,8 @@ drawHistoryState HistoryState {..} =
           [ let today = historyStateMaxDay
                 days = [addDays (- daysShown) today .. today]
                 monthHeader d =
-                  let (_, m, md) = toGregorian d
-                   in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" m) else str "  "
+                  let (_, month, md) = toGregorian d
+                   in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" month) else str "  "
                 monthsHeader = str " " : map monthHeader days
                 dayHeader d =
                   let (_, _, md) = toGregorian d
@@ -75,44 +71,34 @@ drawHistoryState HistoryState {..} =
                 daysHeader = str " " : map dayHeader days
                 isSelectedDay = (== historyStateDay)
                 selectedDayModifier d = if isSelectedDay d then withAttr selectedDayAttr else id
-                habitRow h em =
-                  let isSelectedHabit =
-                        case historyStateHabitCursor of
-                          Loading -> False
-                          Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just h
-                      selectedModifier = if isSelectedHabit then withAttr selectedHabitAttr else id
-                   in map selectedModifier $
-                        txt (habitName h)
-                          : map
-                            ( \d ->
-                                let showAmount :: Word -> String
-                                    showAmount = printf "%2d"
-                                    amountWidget :: Word -> Widget ResourceName
-                                    amountWidget w =
-                                      let justShow = str $ showAmount w
-                                       in if d == historyStateDay && isSelectedHabit
-                                            then selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
-                                            else justShow
-                                    mAmount = case entryMapLookup em d of
-                                      Exactly w -> Just w
-                                      NoDataBeforeFirst -> Nothing
-                                      NoDataAfterLast -> Nothing
-                                      AssumedZero -> Just 0
-                                    selectedBothModifier =
-                                      if isSelectedDay d && isSelectedHabit
-                                        then withAttr selectedBothAttr
-                                        else selectedDayModifier d
-                                 in selectedBothModifier $ case mAmount of
-                                      Nothing -> str "  "
-                                      Just a -> case habitType h of
-                                        PositiveHabit ->
-                                          let modifier = if a > 0 then withAttr goodAttr else id
-                                           in modifier $ amountWidget a
-                                        NegativeHabit ->
-                                          let modifier = if a <= 0 then withAttr goodAttr else id
-                                           in modifier $ amountWidget a
-                            )
-                            days
+                isSelectedHabit h =
+                  case historyStateHabitCursor of
+                    Loading -> False
+                    Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
+                selectedHabitModifier h = if isSelectedHabit h then withAttr selectedHabitAttr else id
+                amountCell h em d =
+                  let showAmount :: Word -> String
+                      showAmount = printf "%2d"
+                      amountWidget :: Maybe Word -> Widget ResourceName
+                      amountWidget mw =
+                        if isSelectedDay d && isSelectedHabit h
+                          then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
+                          else case mw of
+                            Nothing -> str "  "
+                            Just w -> str $ showAmount w
+                      mAmount = case entryMapLookup em d of
+                        Exactly w -> Just w
+                        NoDataBeforeFirst -> Nothing
+                        NoDataAfterLast -> Nothing
+                        AssumedZero -> Just 0
+                      isGood a = case habitType h of
+                        PositiveHabit -> a > 0
+                        NegativeHabit -> a <= 0
+                      goodModifier a = if isGood a then withAttr goodAttr else id
+                   in selectedDayModifier d $ case mAmount of
+                        Nothing -> amountWidget Nothing
+                        Just a -> goodModifier a $ amountWidget $ Just a
+                habitRow h em = map (selectedHabitModifier h) $ txt (habitName h) : map (amountCell h em) days
              in padBottom Max $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
             hBorder,
             padTop Max $ str "Detailed stats per habit"
