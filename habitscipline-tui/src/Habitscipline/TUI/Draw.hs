@@ -77,7 +77,15 @@ drawHistoryState HistoryState {..} =
                   let showAmount :: Word -> String
                       showAmount w =
                         if habitBoolean h
-                          then if w > 0 then " ✓" else "  "
+                          then case habitType h of
+                            PositiveHabit ->
+                              if w > 0
+                                then " ✓"
+                                else "  "
+                            NegativeHabit ->
+                              if w > 0
+                                then " ✗"
+                                else " ✓"
                           else printf "%2d" w
                       amountWidget :: Maybe Word -> Widget ResourceName
                       amountWidget mw =
