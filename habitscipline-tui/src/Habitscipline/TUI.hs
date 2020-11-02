@@ -8,7 +8,9 @@ import Brick.Main
 import Control.Concurrent.Async
 import Control.Monad.Logger
 import Control.Monad.Reader
+import Cursor.Text
 import qualified Data.Text as T
+import Data.Time
 import Database.Persist.Sqlite
 import Graphics.Vty (defaultConfig, mkVty)
 import Habitscipline.Client.Data
@@ -22,6 +24,7 @@ import Path
 import Path.IO
 import System.Exit
 import System.FileLock
+import Text.Show.Pretty
 
 habitsciplineTUI :: IO ()
 habitsciplineTUI = do
@@ -45,7 +48,7 @@ habitsciplineTUI = do
           let runWorker = runReaderT (tuiWorker reqChan respChan) env
           -- Left always works because the worker runs forever
           Left endState <- race runTui runWorker
-          print endState
+          pPrint endState
   case mLocked of
     Just () -> pure () -- Everything went file
     Nothing -> die "Unable to lock habit database."
@@ -63,8 +66,13 @@ tuiApp chan =
     }
 
 buildInitialState :: IO State
-buildInitialState =
+buildInitialState = do
+  today <- utctDay <$> getCurrentTime
   pure $ StateHistory $
     HistoryState
-      { historyStateHabitMaps = Loading
+      { historyStateHabitMaps = Loading,
+        historyStateHabitCursor = Loading,
+        historyStateAmountCursor = emptyTextCursor,
+        historyStateDay = today,
+        historyStateMaxDay = today
       }

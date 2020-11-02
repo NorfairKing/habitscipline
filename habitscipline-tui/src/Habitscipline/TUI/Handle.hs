@@ -8,10 +8,13 @@ import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Cursor.Types
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Map as M
 import Data.Maybe
+import Data.Time
 import Data.UUID.Typed
 import Graphics.Vty.Input.Events
 import Habitscipline.Data
+import Habitscipline.TUI.Draw
 import Habitscipline.TUI.Env
 import Habitscipline.TUI.State
 
@@ -26,13 +29,38 @@ handleHistoryState :: BChan Request -> HistoryState -> BrickEvent n Response -> 
 handleHistoryState chan s e =
   case e of
     VtyEvent vtye ->
-      case vtye of
-        EvKey KEsc [] -> halt $ StateHistory s
-        EvKey (KChar 'q') [] -> halt $ StateHistory s
-        EvKey (KChar 'h') [] -> toHabitList chan
-        _ -> continue $ StateHistory s
+      let cursorDo func = case historyStateHabitCursor s of
+            Loading -> continue $ StateHistory s
+            Loaded mCursor -> case mCursor of
+              Nothing -> continue $ StateHistory s
+              Just cursor ->
+                let cursor' = fromMaybe cursor $ func cursor
+                 in continue $ StateHistory $ s {historyStateHabitCursor = Loaded $ Just cursor'}
+          dayDo func =
+            let d = func $ historyStateDay s
+             in continue $ StateHistory $
+                  s
+                    { historyStateDay = d,
+                      historyStateMaxDay = min (addDays daysShown d) $ max d (historyStateMaxDay s)
+                    }
+       in case vtye of
+            EvKey KEsc [] -> halt $ StateHistory s
+            EvKey (KChar 'q') [] -> halt $ StateHistory s
+            EvKey (KChar 'h') [] -> toHabitList chan
+            EvKey KDown [] -> cursorDo nonEmptyCursorSelectNext
+            EvKey (KChar 'j') [] -> cursorDo nonEmptyCursorSelectNext
+            EvKey KUp [] -> cursorDo nonEmptyCursorSelectPrev
+            EvKey (KChar 'k') [] -> cursorDo nonEmptyCursorSelectPrev
+            EvKey KLeft [] -> dayDo $ addDays (-1)
+            EvKey KRight [] -> dayDo $ addDays 1
+            _ -> continue $ StateHistory s
     AppEvent resp -> case resp of
-      ResponseHistory hms -> continue $ StateHistory $ s {historyStateHabitMaps = Loaded hms}
+      ResponseHistory hms ->
+        continue $ StateHistory $
+          s
+            { historyStateHabitMaps = Loaded hms,
+              historyStateHabitCursor = Loaded $ makeNonEmptyCursor <$> NE.nonEmpty (M.keys hms)
+            }
     _ -> continue $ StateHistory s
 
 handleHabitListState :: BChan Request -> HabitListState -> BrickEvent n Response -> EventM n (Next State)
@@ -141,7 +169,15 @@ handleTC tc e =
 toHistory :: BChan Request -> EventM n (Next State)
 toHistory chan = do
   liftIO $ writeBChan chan RequestHistory
-  continue $ StateHistory $ HistoryState {historyStateHabitMaps = Loading}
+  today <- liftIO $ utctDay <$> getCurrentTime
+  continue $ StateHistory $
+    HistoryState
+      { historyStateHabitMaps = Loading,
+        historyStateHabitCursor = Loading,
+        historyStateAmountCursor = emptyTextCursor,
+        historyStateDay = today,
+        historyStateMaxDay = today
+      }
 
 toHabitList :: BChan Request -> EventM n (Next State)
 toHabitList chan = do

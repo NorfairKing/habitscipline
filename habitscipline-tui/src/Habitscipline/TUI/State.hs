@@ -8,6 +8,7 @@ import Cursor.Text
 import Data.Map (Map)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time
 import Habitscipline.Data
 import Text.Read
 
@@ -19,13 +20,17 @@ data State
 
 data HistoryState
   = HistoryState
-      { historyStateHabitMaps :: Load (Map Habit EntryMap)
+      { historyStateHabitMaps :: !(Load (Map Habit EntryMap)),
+        historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor Habit))),
+        historyStateAmountCursor :: !TextCursor,
+        historyStateDay :: !Day,
+        historyStateMaxDay :: !Day
       }
   deriving (Show)
 
 data HabitListState
   = HabitListState
-      { habitListStateHabits :: Load (Maybe (NonEmptyCursor Habit))
+      { habitListStateHabits :: !(Load (Maybe (NonEmptyCursor Habit)))
       }
   deriving (Show)
 
