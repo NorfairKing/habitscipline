@@ -36,6 +36,7 @@ data Habit
         habitName :: !Text,
         habitDescription :: !(Maybe Text),
         habitType :: !HabitType,
+        habitBoolean :: !Bool,
         habitGoal :: !Goal
       }
   deriving (Show, Eq, Ord, Generic)
@@ -49,6 +50,7 @@ instance FromJSON Habit where
       <*> o .: "name"
       <*> o .:? "description"
       <*> o .: "type"
+      <*> o .: "boolean"
       <*> o .: "goal"
 
 instance ToJSON Habit where
@@ -58,6 +60,7 @@ instance ToJSON Habit where
         "name" .= habitName,
         "description" .= habitDescription,
         "type" .= habitType,
+        "boolean" .= habitBoolean,
         "goal" .= habitGoal
       ]
 

@@ -216,6 +216,7 @@ toNewHabit =
         { newHabitStateName = emptyTextCursor,
           newHabitStateDescription = emptyTextCursor,
           newHabitStateType = PositiveHabit,
+          newHabitStateBoolean = True,
           newHabitStateGoalUnit = emptyTextCursor,
           newHabitStateGoalNumerator = emptyTextCursor,
           newHabitStateGoalDenominator = emptyTextCursor,

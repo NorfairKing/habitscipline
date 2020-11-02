@@ -50,6 +50,7 @@ ServerHabit sql=habit
   name Text
   description Text Maybe
   type HabitType
+  boolean Bool
   goalUnit Text
   goalNumerator Word
   goalDenominator Word
@@ -89,6 +90,7 @@ serverMakeHabit ServerHabit {..} = Timed Habit {..} serverHabitServerTime
     habitName = serverHabitName
     habitDescription = serverHabitDescription
     habitType = serverHabitType
+    habitBoolean = serverHabitBoolean
     goalUnit = serverHabitGoalUnit
     goalNumerator = serverHabitGoalNumerator
     goalDenominator = serverHabitGoalDenominator
@@ -102,6 +104,7 @@ makeServerHabit serverHabitUser Habit {..} = ServerHabit {..}
     serverHabitName = habitName
     serverHabitDescription = habitDescription
     serverHabitType = habitType
+    serverHabitBoolean = habitBoolean
     Goal {..} = habitGoal
     serverHabitGoalUnit = goalUnit
     serverHabitGoalNumerator = goalNumerator

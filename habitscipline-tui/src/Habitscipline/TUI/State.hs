@@ -40,6 +40,7 @@ data NewHabitState
       { newHabitStateName :: TextCursor,
         newHabitStateDescription :: TextCursor,
         newHabitStateType :: HabitType,
+        newHabitStateBoolean :: Bool,
         newHabitStateGoalUnit :: TextCursor,
         newHabitStateGoalNumerator :: TextCursor,
         newHabitStateGoalDenominator :: TextCursor,
@@ -54,6 +55,7 @@ newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
         let t = rebuildTextCursor newHabitStateDescription
          in if T.null t then Nothing else Just t
       habitType = newHabitStateType
+      habitBoolean = newHabitStateBoolean
   let parseWord d tc =
         let t = rebuildTextCursor tc
          in if T.null t

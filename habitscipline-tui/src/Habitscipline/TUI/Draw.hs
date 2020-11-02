@@ -75,7 +75,10 @@ drawHistoryState HistoryState {..} =
                     Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
                 amountCell h em d =
                   let showAmount :: Word -> String
-                      showAmount = printf "%2d"
+                      showAmount w =
+                        if habitBoolean h
+                          then if w > 0 then " ✓" else "  "
+                          else printf "%2d" w
                       amountWidget :: Maybe Word -> Widget ResourceName
                       amountWidget mw =
                         if isSelectedDay d && isSelectedHabit h

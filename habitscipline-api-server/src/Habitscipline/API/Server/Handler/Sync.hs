@@ -19,6 +19,7 @@ handlePostSync AuthCookie {..} SyncRequest {..} = withUser authCookieUsername $ 
            in [ ServerHabitName =. habitName,
                 ServerHabitDescription =. habitDescription,
                 ServerHabitType =. habitType,
+                ServerHabitBoolean =. habitBoolean,
                 ServerHabitGoalUnit =. goalUnit,
                 ServerHabitGoalNumerator =. goalNumerator,
                 ServerHabitGoalDenominator =. goalDenominator

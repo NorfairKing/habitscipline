@@ -46,6 +46,7 @@ sync = withClient $ \cenv -> withLogin cenv $ \token -> do
            in [ ClientHabitName =. habitName,
                 ClientHabitDescription =. habitDescription,
                 ClientHabitType =. habitType,
+                ClientHabitBoolean =. habitBoolean,
                 ClientHabitGoalUnit =. goalUnit,
                 ClientHabitGoalNumerator =. goalNumerator,
                 ClientHabitGoalDenominator =. goalDenominator

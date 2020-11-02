@@ -33,6 +33,7 @@ ClientHabit sql=habit
     uuid HabitUuid -- Not modifyable
     name Text
     description Text Maybe
+    boolean Bool default=1 -- True
     type HabitType
     goalUnit Text
     goalNumerator Word
@@ -60,6 +61,7 @@ clientMakeHabit ClientHabit {..} = (clientHabitServerId, clientHabitServerTime, 
     habitName = clientHabitName
     habitDescription = clientHabitDescription
     habitType = clientHabitType
+    habitBoolean = clientHabitBoolean
     goalUnit = clientHabitGoalUnit
     goalNumerator = clientHabitGoalNumerator
     goalDenominator = clientHabitGoalDenominator
@@ -83,6 +85,7 @@ makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHab
     clientHabitName = habitName
     clientHabitDescription = habitDescription
     clientHabitType = habitType
+    clientHabitBoolean = habitBoolean
     Goal {..} = habitGoal
     clientHabitGoalUnit = goalUnit
     clientHabitGoalNumerator = goalNumerator
