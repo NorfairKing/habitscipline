@@ -103,7 +103,8 @@ data Goal
       }
   deriving (Show, Eq, Ord, Generic)
 
-instance Validity Goal
+instance Validity Goal where
+  validate g@Goal {..} = mconcat [genericValidate g, declare "The denominator is not zero" $ goalDenominator > 0]
 
 instance FromJSON Goal
 

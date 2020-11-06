@@ -12,6 +12,8 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+    - QuickCheck
+    - containers
     - genvalidity
     - genvalidity-bytestring
     - genvalidity-containers
@@ -21,6 +23,7 @@ library:
     - genvalidity-typed-uuid
     - habitscipline-data
     - text
+    - time
 
 tests:
   habitscipline-data-test:
