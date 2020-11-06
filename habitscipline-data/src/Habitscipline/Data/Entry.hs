@@ -8,7 +8,6 @@ module Habitscipline.Data.Entry where
 import Data.Aeson
 import qualified Data.Map as M
 import Data.Map (Map)
-import Data.Maybe
 import Data.Time
 import Data.Validity
 import Data.Validity.Containers ()
@@ -97,7 +96,9 @@ data RangeSum
   | PartialSumEnd Word
   | PartialSumBoth Word
   | NoSum
-  deriving (Show, Eq)
+  deriving (Show, Eq, Generic)
+
+instance Validity RangeSum
 
 -- O(n) in the number of entries between these two days
 entryMapRangeSum :: Bool -> EntryMap -> Day -> Day -> RangeSum

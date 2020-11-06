@@ -34,12 +34,13 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - containers
     - genvalidity-hspec
     - genvalidity-hspec-aeson
     - genvalidity-hspec-persistent
+    - habitscipline-data
+    - habitscipline-data-gen
     - hspec
     - path
     - path-io
-    - habitscipline-data
-    - habitscipline-data-gen
     - yamlparse-applicative

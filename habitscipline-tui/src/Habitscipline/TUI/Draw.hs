@@ -17,7 +17,6 @@ import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Data.List
 import qualified Data.Map as M
-import Data.Maybe
 import qualified Data.Text as T
 import Data.Time
 import Graphics.Vty.Attributes
@@ -111,7 +110,18 @@ drawHistoryState HistoryState {..} =
                         amountWidget :: Maybe Word -> Widget ResourceName
                         amountWidget mw =
                           if isSelectedDay d && isSelectedHabit h
-                            then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
+                            then
+                              forceAttr selectedBothAttr
+                                $ ( case mw of
+                                      Nothing -> id
+                                      Just w -> if w < 10 then padLeft (Pad 1) else id
+                                  )
+                                $ selectedTextCursorWidget ResourceTextCursor
+                                $ if textCursorNull historyStateAmountCursor
+                                  then case mw of
+                                    Nothing -> emptyTextCursor
+                                    Just w -> maybe emptyTextCursor textCursorSelectStart $ makeTextCursor (T.pack $ show w)
+                                  else historyStateAmountCursor
                             else case mw of
                               Nothing -> str "  "
                               Just w -> str $ showAmount w

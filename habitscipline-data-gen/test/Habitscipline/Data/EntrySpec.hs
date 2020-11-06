@@ -5,6 +5,7 @@ module Habitscipline.Data.EntrySpec
   )
 where
 
+import qualified Data.Map as M
 import Habitscipline.Data.Entry
 import Habitscipline.Data.Entry.Gen ()
 import Habitscipline.Data.Habit.Gen ()
@@ -22,9 +23,9 @@ spec = do
     shouldBeValid $ entryMapRangeSum b em begin end
   describe "entryMapGoalMet" $ it "produces valid results" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \d -> forAllValid $ \em ->
     shouldBeValid $ entryMapGoalMet ht b g d em
-  describe "entryMapStreaks" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em ->
-    shouldBeValid $ entryMapStreaks ht b g em
-  describe "entryMapLongestStreak" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em ->
-    shouldBeValid $ entryMapLongestStreak ht b g em
-  describe "entryMapLatestStreak" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em ->
-    shouldBeValid $ entryMapLatestStreak ht b g em
+  describe "entryMapStreaks" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em -> forAllValid $ \d ->
+    shouldBeValid $ entryMapStreaks ht b g em $ maybe d fst $ M.lookupMax (unEntryMap em)
+  describe "entryMapLongestStreak" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em -> forAllValid $ \d ->
+    shouldBeValid $ entryMapLongestStreak ht b g em $ maybe d fst $ M.lookupMax (unEntryMap em)
+  describe "entryMapLatestStreak" $ it "produces valid streaks" $ forAllValid $ \ht -> forAllValid $ \b -> forAllValid $ \g -> forAllValid $ \em -> forAllValid $ \d ->
+    shouldBeValid $ entryMapLatestStreak ht b g em $ maybe d fst $ M.lookupMax (unEntryMap em)
