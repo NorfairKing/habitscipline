@@ -93,7 +93,9 @@ streakIsCurrent Streak {..} d = streakEnd == d
 
 data RangeSum
   = CompleteSum Word
-  | PartialSum Word
+  | PartialSumBegin Word
+  | PartialSumEnd Word
+  | PartialSumBoth Word
   | NoSum
   deriving (Show, Eq)
 
@@ -111,9 +113,11 @@ entryMapRangeSum habitBoolean (EntryMap em') beginDay endDay =
         Nothing -> NoSum -- No entries, no amounts known
         Just ((firstDay, _), (lastDay, _)) ->
           let c = sum $ M.map count em
-           in if beginDay < firstDay || endDay > lastDay
-                then PartialSum c
-                else CompleteSum c
+           in case (beginDay < firstDay, endDay > lastDay) of
+                (True, True) -> PartialSumBoth c
+                (True, False) -> PartialSumBegin c
+                (False, True) -> PartialSumEnd c
+                (False, False) -> CompleteSum c
 
 -- For positive habits, a goal is met if the total amount over the last *denominator* days
 -- is more than *numerator*.
@@ -125,7 +129,22 @@ entryMapGoalMet ht habitBoolean Goal {..} endDay em =
   let beginDay = addDays (- fromIntegral (goalDenominator - 1)) endDay
    in case entryMapRangeSum habitBoolean em beginDay endDay of
         NoSum -> Nothing
-        PartialSum w -> case ht of
+        PartialSumBegin w -> case ht of
+          PositiveHabit ->
+            if w >= goalNumerator
+              then Just True -- If we already achieve our goal earlier, we can work with partial data.
+              else Nothing
+          NegativeHabit -> Nothing
+        PartialSumEnd w -> case ht of
+          PositiveHabit ->
+            if w >= goalNumerator
+              then Just True -- If we already achieve our goal earlier, we can work with partial data.
+              else Nothing
+          NegativeHabit ->
+            if w <= goalNumerator
+              then Just True -- We assume zero at the end
+              else Nothing
+        PartialSumBoth w -> case ht of
           PositiveHabit ->
             if w >= goalNumerator
               then Just True -- If we already achieve our goal earlier, we can work with partial data.
