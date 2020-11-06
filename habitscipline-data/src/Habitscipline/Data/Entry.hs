@@ -71,8 +71,8 @@ entryMapLookup (EntryMap m) d = case M.lookup d m of
 -- A streak is a range of days where the habit goal was met every day.
 data Streak
   = Streak
-      { streakBegin :: Day,
-        streakEnd :: Day
+      { streakBegin :: !Day,
+        streakEnd :: !Day
       }
   deriving (Show, Eq, Ord, Generic)
 
@@ -83,8 +83,22 @@ instance Validity Streak where
         declare "The end is on or after the begin" $ streakEnd >= streakBegin
       ]
 
+streakDays :: Streak -> Word
+streakDays Streak {..} =
+  -- This 'fromIntegral' is technically not correct but practically fine.
+  fromIntegral $ diffDays streakEnd streakBegin + 1
+
+streakIsCurrent :: Streak -> Day -> Bool
+streakIsCurrent Streak {..} d = streakEnd == d
+
+data RangeSum
+  = CompleteSum Word
+  | PartialSum Word
+  | NoSum
+  deriving (Show, Eq)
+
 -- O(n) in the number of entries between these two days
-entryMapRangeSum :: Bool -> EntryMap -> Day -> Day -> Maybe Word
+entryMapRangeSum :: Bool -> EntryMap -> Day -> Day -> RangeSum
 entryMapRangeSum habitBoolean (EntryMap em') beginDay endDay =
   let (_, geBeginMap) = M.split (addDays (-1) beginDay) em' -- O(Log n)
       (em, _) = M.split (addDays 1 endDay) geBeginMap -- O(Log n)
@@ -93,53 +107,63 @@ entryMapRangeSum habitBoolean (EntryMap em') beginDay endDay =
         if habitBoolean
           then if w > 0 then 1 else 0
           else w
-   in case M.lookupMin em' of
-        Nothing -> Nothing -- No entries, no amounts known
-        Just (firstDay, _) ->
-          if beginDay < firstDay
-            then Nothing
-            else Just $ sum $ M.map count em
+   in case (,) <$> M.lookupMin em' <*> M.lookupMax em' of
+        Nothing -> NoSum -- No entries, no amounts known
+        Just ((firstDay, _), (lastDay, _)) ->
+          let c = sum $ M.map count em
+           in if beginDay < firstDay || endDay > lastDay
+                then PartialSum c
+                else CompleteSum c
 
 -- For positive habits, a goal is met if the total amount over the last *denominator* days
 -- is more than *numerator*.
 -- For negative habits, a goal is met if the total amount over the last *denominator* days
 -- is _less_ than *numerator*.
 -- O(n) in the number of entries
-entryMapGoalMet :: HabitType -> Bool -> Goal -> Day -> EntryMap -> Maybe Bool
+entryMapGoalMet :: HabitType -> Bool -> Goal -> Day -> EntryMap -> Maybe Bool -- Nothing means not enough data
 entryMapGoalMet ht habitBoolean Goal {..} endDay em =
-  let cmp = case ht of
-        PositiveHabit -> (>=)
-        NegativeHabit -> (<=)
-      beginDay = addDays (- fromIntegral goalDenominator) endDay
-   in (`cmp` goalNumerator) <$> entryMapRangeSum habitBoolean em beginDay endDay
+  let beginDay = addDays (- fromIntegral (goalDenominator - 1)) endDay
+   in case entryMapRangeSum habitBoolean em beginDay endDay of
+        NoSum -> Nothing
+        PartialSum w -> case ht of
+          PositiveHabit ->
+            if w >= goalNumerator
+              then Just True -- If we already achieve our goal earlier, we can work with partial data.
+              else Nothing
+          NegativeHabit -> Nothing
+        CompleteSum w -> Just $ case ht of
+          PositiveHabit -> w >= goalNumerator
+          NegativeHabit -> w <= goalNumerator
 
 -- [Note: Complexity]
 -- This is currently linear in the number of days between the first and the last entry.
--- FIXME: I _think_ that can be sped up but it's not as simple as it seems because Streaks can overlap.
--- Indeed, take a positive goal of 2/4 and the entries 1,0,0,1,0,0,1.
--- Then there are two streaks that overlap on the middle day.
-entryMapStreaks :: HabitType -> Bool -> Goal -> EntryMap -> [Streak]
-entryMapStreaks ht b g@Goal {..} em@(EntryMap m) =
-  case M.lookupMax m of
+-- FIXME: I _think_ that can be sped up but it's not as simple as it seems.
+entryMapStreaks :: HabitType -> Bool -> Goal -> EntryMap -> Day -> [Streak]
+entryMapStreaks ht b g@Goal {..} em@(EntryMap m) endDay =
+  case M.lookupMin m of
     Nothing -> [] -- No entries, no streaks
-    Just (endDay, _) ->
-      case M.lookupMin m of
-        Nothing -> []
-        Just (beginDay, _) ->
-          let ends = [beginDay .. endDay]
-           in mapMaybe
-                ( \end -> do
-                    goalMet <- entryMapGoalMet ht b g end em
-                    if goalMet
-                      then
-                        let begin = addDays (- fromIntegral goalDenominator) end
-                         in pure $ Streak begin end
-                      else Nothing
-                )
-                ends
+    Just (beginDay, _) ->
+      let ends = [beginDay .. endDay]
+          goalMets = map (\end -> (end, entryMapGoalMet ht b g end em)) ends
+       in buildStreaks goalMets
 
-entryMapLongestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Maybe Streak
-entryMapLongestStreak ht b g em = maximumMay $ entryMapStreaks ht b g em
+buildStreaks :: [(Day, Maybe Bool)] -> [Streak]
+buildStreaks = go Nothing
+  where
+    go :: Maybe Streak -> [(Day, Maybe Bool)] -> [Streak]
+    go Nothing [] = []
+    go (Just s) [] = [s]
+    go mcur ((d, met) : rest) = case mcur of
+      Nothing -> case met of
+        Just True -> go (Just (Streak d d)) rest
+        _ -> go Nothing rest
+      Just s -> case met of
+        Just True -> go (Just $ s {streakEnd = d}) rest
+        Just False -> s : go Nothing rest
+        Nothing -> s : go Nothing rest
 
-entryMapLatestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Maybe Streak
-entryMapLatestStreak ht b g em = lastMay $ entryMapStreaks ht b g em
+entryMapLongestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Day -> Maybe Streak
+entryMapLongestStreak ht b g em today = maximumMay $ entryMapStreaks ht b g em today
+
+entryMapLatestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Day -> Maybe Streak
+entryMapLatestStreak ht b g em today = lastMay $ entryMapStreaks ht b g em today

@@ -11,10 +11,13 @@ import Brick.Util
 import Brick.Widgets.Border
 import Brick.Widgets.Center
 import Brick.Widgets.Core
+import Control.Monad
 import Cursor.Brick
 import Cursor.Simple.List.NonEmpty
 import Cursor.Text
+import Data.List
 import qualified Data.Map as M
+import Data.Maybe
 import qualified Data.Text as T
 import Data.Time
 import Graphics.Vty.Attributes
@@ -66,7 +69,7 @@ drawHistoryState HistoryState {..} =
                 monthsHeader = map monthHeader days ++ [str " "]
                 dayHeader d =
                   let (_, _, md) = toGregorian d
-                   in (if d == historyStateToday then visible . withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
+                   in (if d == historyStateToday then withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
                 daysHeader = map dayHeader days ++ [str " "]
                 isSelectedDay = (== historyStateDay)
                 isSelectedHabit h =
@@ -90,7 +93,7 @@ drawHistoryState HistoryState {..} =
                       amountWidget :: Maybe Word -> Widget ResourceName
                       amountWidget mw =
                         if isSelectedDay d && isSelectedHabit h
-                          then visible $ forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
+                          then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
                           else case mw of
                             Nothing -> str "  "
                             Just w -> str $ showAmount w
@@ -107,9 +110,32 @@ drawHistoryState HistoryState {..} =
                         Nothing -> amountWidget Nothing
                         Just a -> goodModifier a $ amountWidget $ Just a
                 habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
-             in padBottom Max $ viewport ResourceHabitViewport Vertical $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
+             in padAll 1 $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
             hBorder,
-            padTop Max $ str "Detailed stats per habit"
+            padBottom Max $ case historyStateHabitCursor of
+              Loading -> emptyWidget
+              Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
+                Nothing -> emptyWidget
+                Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
+                  Nothing -> emptyWidget
+                  Just (h@Habit {..}, em) ->
+                    let longestStreak = entryMapLongestStreak habitType habitBoolean habitGoal em historyStateToday
+                        latestStreak = entryMapLatestStreak habitType habitBoolean habitGoal em historyStateToday
+                        currentStreak = do
+                          latest <- latestStreak
+                          guard (streakIsCurrent latest historyStateToday)
+                          pure latest
+                     in vBox $
+                          concat
+                            [ [drawHabitDescription h],
+                              [ padTop (Pad 1) $ vBox $
+                                  catMaybes
+                                    [ (\s -> str $ "Longest streak: " <> show (streakDays s)) <$> longestStreak,
+                                      (\s -> str $ "Latest streak: " <> show (streakDays s)) <$> latestStreak,
+                                      (\s -> str $ "Current streak: " <> show (streakDays s)) <$> currentStreak
+                                    ]
+                              ]
+                            ]
           ]
   ]
 
@@ -125,46 +151,44 @@ drawHabitListState HabitListState {..} =
                 [ let go = (: []) . txtWrap . habitName
                    in padAll 1 $ verticalNonEmptyCursorTable go (map (withDefAttr selectedAttr) . go) go cursor,
                   vBorder,
-                  let Habit {..} = nonEmptyCursorCurrent cursor
-                      Goal {..} = habitGoal
-                   in padAll 1 $
-                        vBox
-                          [ hBox [str "Name: ", withAttr nameAttr $ txtWrap habitName],
-                            hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txtWrap habitDescription],
-                            borderWithLabel (str "[ Goal ]") $ padLeftRight 1 $
-                              vBox
-                                [ hBox [str "Unit: ", txtWrap goalUnit],
-                                  hBox [str "Numerator: ", txtWrap (T.pack (show goalNumerator))],
-                                  hBox [str "Numerator: ", txtWrap (T.pack (show goalDenominator))],
-                                  padTop (Pad 1)
-                                    $ markup
-                                    $ mconcat
-                                    $ case habitType of
-                                      PositiveHabit ->
-                                        [ "I want to achieve ",
-                                          T.pack (show goalNumerator) @? numeratorAttr,
-                                          " ",
-                                          goalUnit @? unitAttr,
-                                          " every ",
-                                          T.pack (show goalDenominator) @? denominatorAttr,
-                                          " days."
-                                        ]
-                                      NegativeHabit ->
-                                        [ "I want to have at most ",
-                                          T.pack (show goalNumerator) @? numeratorAttr,
-                                          " ",
-                                          goalUnit @? unitAttr,
-                                          " every ",
-                                          T.pack (show goalDenominator) @? denominatorAttr,
-                                          " days."
-                                        ]
-                                ]
-                          ]
+                  padAll 1 $ drawHabitDescription $ nonEmptyCursorCurrent cursor
                 ],
         hBorder,
         hCenterLayer $ str "Press 'n' to create a new habit"
       ]
   ]
+
+drawHabitDescription :: Habit -> Widget n
+drawHabitDescription Habit {..} =
+  let Goal {..} = habitGoal
+   in vBox
+        [ hBox [str "Name: ", withAttr nameAttr $ txtWrap habitName],
+          hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txtWrap habitDescription],
+          hBox
+            [ str "Goal: ",
+              markup
+                $ mconcat
+                $ case habitType of
+                  PositiveHabit ->
+                    [ "I want to achieve ",
+                      T.pack (show goalNumerator) @? numeratorAttr,
+                      " ",
+                      goalUnit @? unitAttr,
+                      " every ",
+                      T.pack (show goalDenominator) @? denominatorAttr,
+                      " days."
+                    ]
+                  NegativeHabit ->
+                    [ "I want to have at most ",
+                      T.pack (show goalNumerator) @? numeratorAttr,
+                      " ",
+                      goalUnit @? unitAttr,
+                      " every ",
+                      T.pack (show goalDenominator) @? denominatorAttr,
+                      " days."
+                    ]
+            ]
+        ]
 
 drawNewHabitState :: NewHabitState -> [Widget ResourceName]
 drawNewHabitState nhs@NewHabitState {..} =

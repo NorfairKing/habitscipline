@@ -80,8 +80,17 @@ data NewHabitStateSelection
   | SelectCreateButton
   deriving (Show, Eq, Ord)
 
-data ResourceName = ResourceTextCursor | ResourceHistoryHeader | ResourceHabitViewport
+data ResourceName = ResourceTextCursor
   deriving (Show, Eq, Ord)
 
 data Load a = Loaded a | Loading
   deriving (Show, Eq)
+
+instance Functor Load where
+  fmap _ Loading = Loading
+  fmap f (Loaded a) = Loaded $ f a
+
+instance Applicative Load where
+  pure = Loaded
+  Loaded f <*> Loaded a = Loaded $ f a
+  _ <*> _ = Loading
