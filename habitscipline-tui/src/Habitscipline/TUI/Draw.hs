@@ -66,11 +66,27 @@ drawHistoryState HistoryState {..} =
                   days = [addDays (- daysShown) today .. today]
                   monthHeader d =
                     let (_, month, md) = toGregorian d
-                     in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" month) else str "  "
+                     in if md == 1
+                          then withDefAttr headerAttr $ str (printf "%2d" month)
+                          else str "  "
                   monthsHeader = map monthHeader days ++ [str " "]
+                  dowHeader d = str $ case dayOfWeek d of
+                    Monday -> "Mo"
+                    Tuesday -> "Tu"
+                    Wednesday -> "We"
+                    Thursday -> "Th"
+                    Friday -> "Fr"
+                    Saturday -> "Sa"
+                    Sunday -> "Su"
+                  dowsHeader = map dowHeader days ++ [str " "]
                   dayHeader d =
                     let (_, _, md) = toGregorian d
-                     in (if d == historyStateToday then withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
+                     in ( if d == historyStateToday
+                            then withAttr todayAttr
+                            else id
+                        )
+                          $ withDefAttr headerAttr
+                          $ str (printf "%2d" md)
                   daysHeader = map dayHeader days ++ [str " "]
                   isSelectedDay = (== historyStateDay)
                   isSelectedHabit h =
@@ -111,7 +127,7 @@ drawHistoryState HistoryState {..} =
                           Nothing -> amountWidget Nothing
                           Just a -> goodModifier a $ amountWidget $ Just a
                   habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
-               in tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
+               in tableWidget $ monthsHeader : dowsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
               padTop (Pad 1) $ case historyStateHabitCursor of
                 Loading -> emptyWidget
                 Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
