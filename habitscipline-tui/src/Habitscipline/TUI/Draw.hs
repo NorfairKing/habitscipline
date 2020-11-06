@@ -66,7 +66,7 @@ drawHistoryState HistoryState {..} =
                 monthsHeader = map monthHeader days ++ [str " "]
                 dayHeader d =
                   let (_, _, md) = toGregorian d
-                   in withDefAttr (if d == historyStateToday then todayAttr else headerAttr) $ str (printf "%2d" md)
+                   in (if d == historyStateToday then visible . withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
                 daysHeader = map dayHeader days ++ [str " "]
                 isSelectedDay = (== historyStateDay)
                 isSelectedHabit h =
@@ -90,7 +90,7 @@ drawHistoryState HistoryState {..} =
                       amountWidget :: Maybe Word -> Widget ResourceName
                       amountWidget mw =
                         if isSelectedDay d && isSelectedHabit h
-                          then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
+                          then visible $ forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
                           else case mw of
                             Nothing -> str "  "
                             Just w -> str $ showAmount w
@@ -107,7 +107,7 @@ drawHistoryState HistoryState {..} =
                         Nothing -> amountWidget Nothing
                         Just a -> goodModifier a $ amountWidget $ Just a
                 habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
-             in padBottom Max $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
+             in padBottom Max $ viewport ResourceHabitViewport Vertical $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
             hBorder,
             padTop Max $ str "Detailed stats per habit"
           ]

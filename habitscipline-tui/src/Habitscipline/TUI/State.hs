@@ -80,7 +80,7 @@ data NewHabitStateSelection
   | SelectCreateButton
   deriving (Show, Eq, Ord)
 
-data ResourceName = ResourceTextCursor
+data ResourceName = ResourceTextCursor | ResourceHistoryHeader | ResourceHabitViewport
   deriving (Show, Eq, Ord)
 
 data Load a = Loaded a | Loading
