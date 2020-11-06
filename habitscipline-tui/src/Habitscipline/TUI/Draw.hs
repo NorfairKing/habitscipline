@@ -57,86 +57,84 @@ daysShown = 20
 
 drawHistoryState :: HistoryState -> [Widget ResourceName]
 drawHistoryState HistoryState {..} =
-  [ case historyStateHabitMaps of
+  [ centerLayer $ borderWithLabel (str "[ Habitscipline ]") $ case historyStateHabitMaps of
       Loading -> str "Loading"
       Loaded m ->
-        vBox
-          [ let today = historyStateMaxDay
-                days = [addDays (- daysShown) today .. today]
-                monthHeader d =
-                  let (_, month, md) = toGregorian d
-                   in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" month) else str "  "
-                monthsHeader = map monthHeader days ++ [str " "]
-                dayHeader d =
-                  let (_, _, md) = toGregorian d
-                   in (if d == historyStateToday then withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
-                daysHeader = map dayHeader days ++ [str " "]
-                isSelectedDay = (== historyStateDay)
-                isSelectedHabit h =
-                  case historyStateHabitCursor of
-                    Loading -> False
-                    Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
-                amountCell h em d =
-                  let showAmount :: Word -> String
-                      showAmount w =
-                        if habitBoolean h
-                          then case habitType h of
-                            PositiveHabit ->
-                              if w > 0
-                                then " ✓"
-                                else "  "
-                            NegativeHabit ->
-                              if w > 0
-                                then " ✗"
-                                else " ✓"
-                          else printf "%2d" w
-                      amountWidget :: Maybe Word -> Widget ResourceName
-                      amountWidget mw =
-                        if isSelectedDay d && isSelectedHabit h
-                          then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
-                          else case mw of
-                            Nothing -> str "  "
-                            Just w -> str $ showAmount w
-                      mAmount = case entryMapLookup em d of
-                        Exactly w -> Just w
-                        NoDataBeforeFirst -> Nothing
-                        NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
-                        AssumedZero -> Just 0
-                      isGood a = case habitType h of
-                        PositiveHabit -> a > 0
-                        NegativeHabit -> a <= 0
-                      goodModifier a = if isGood a then withAttr goodAttr else id
-                   in case mAmount of
-                        Nothing -> amountWidget Nothing
-                        Just a -> goodModifier a $ amountWidget $ Just a
-                habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
-             in padAll 1 $ tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
-            hBorder,
-            padBottom Max $ case historyStateHabitCursor of
-              Loading -> emptyWidget
-              Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
-                Nothing -> emptyWidget
-                Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
+        padLeftRight 2 $ padAll 1 $
+          vBox
+            [ let today = historyStateMaxDay
+                  days = [addDays (- daysShown) today .. today]
+                  monthHeader d =
+                    let (_, month, md) = toGregorian d
+                     in if md == 1 then withDefAttr headerAttr $ str (printf "%2d" month) else str "  "
+                  monthsHeader = map monthHeader days ++ [str " "]
+                  dayHeader d =
+                    let (_, _, md) = toGregorian d
+                     in (if d == historyStateToday then withAttr todayAttr else id) $ withDefAttr headerAttr $ str (printf "%2d" md)
+                  daysHeader = map dayHeader days ++ [str " "]
+                  isSelectedDay = (== historyStateDay)
+                  isSelectedHabit h =
+                    case historyStateHabitCursor of
+                      Loading -> False
+                      Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
+                  amountCell h em d =
+                    let showAmount :: Word -> String
+                        showAmount w =
+                          if habitBoolean h
+                            then case habitType h of
+                              PositiveHabit ->
+                                if w > 0
+                                  then " ✓"
+                                  else "  "
+                              NegativeHabit ->
+                                if w > 0
+                                  then " ✗"
+                                  else " ✓"
+                            else printf "%2d" w
+                        amountWidget :: Maybe Word -> Widget ResourceName
+                        amountWidget mw =
+                          if isSelectedDay d && isSelectedHabit h
+                            then forceAttr selectedBothAttr $ selectedTextCursorWidget ResourceTextCursor historyStateAmountCursor
+                            else case mw of
+                              Nothing -> str "  "
+                              Just w -> str $ showAmount w
+                        mAmount = case entryMapLookup em d of
+                          Exactly w -> Just w
+                          NoDataBeforeFirst -> Nothing
+                          NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
+                          AssumedZero -> Just 0
+                        isGood a = case habitType h of
+                          PositiveHabit -> a > 0
+                          NegativeHabit -> a <= 0
+                        goodModifier a = if isGood a then withAttr goodAttr else id
+                     in case mAmount of
+                          Nothing -> amountWidget Nothing
+                          Just a -> goodModifier a $ amountWidget $ Just a
+                  habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
+               in tableWidget $ monthsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
+              padTop (Pad 1) $ case historyStateHabitCursor of
+                Loading -> emptyWidget
+                Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
                   Nothing -> emptyWidget
-                  Just (h@Habit {..}, em) ->
-                    let longestStreak = entryMapLongestStreak habitType habitBoolean habitGoal em historyStateToday
-                        latestStreak = entryMapLatestStreak habitType habitBoolean habitGoal em historyStateToday
-                        currentStreak = do
-                          latest <- latestStreak
-                          guard (streakIsCurrent latest historyStateToday)
-                          pure latest
-                     in vBox $
-                          concat
-                            [ [drawHabitDescription h],
-                              [ padTop (Pad 1) $ vBox $
-                                  catMaybes
-                                    [ (\s -> str $ "Longest streak: " <> show (streakDays s)) <$> longestStreak,
-                                      (\s -> str $ "Latest streak: " <> show (streakDays s)) <$> latestStreak,
-                                      (\s -> str $ "Current streak: " <> show (streakDays s)) <$> currentStreak
-                                    ]
-                              ]
+                  Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
+                    Nothing -> emptyWidget
+                    Just (h@Habit {..}, em) ->
+                      let longestStreak = entryMapLongestStreak habitType habitBoolean habitGoal em historyStateToday
+                          latestStreak = entryMapLatestStreak habitType habitBoolean habitGoal em historyStateToday
+                          currentStreak = do
+                            latest <- latestStreak
+                            guard (streakIsCurrent latest historyStateToday)
+                            pure latest
+                       in vBox
+                            [ drawHabitDescription h,
+                              padTop (Pad 1) $
+                                vBox
+                                  [ str $ "Longest streak: " <> maybe "0" (show . streakDays) longestStreak,
+                                    str $ "Latest streak: " <> maybe "" (show . streakDays) latestStreak,
+                                    str $ "Current streak: " <> maybe "" (show . streakDays) currentStreak
+                                  ]
                             ]
-          ]
+            ]
   ]
 
 drawHabitListState :: HabitListState -> [Widget ResourceName]
@@ -148,7 +146,7 @@ drawHabitListState HabitListState {..} =
             Nothing -> hCenterLayer $ str "No habits yet, press 'n' to create one."
             Just cursor ->
               hBox
-                [ let go = (: []) . txtWrap . habitName
+                [ let go = (: []) . txt . habitName
                    in padAll 1 $ verticalNonEmptyCursorTable go (map (withDefAttr selectedAttr) . go) go cursor,
                   vBorder,
                   padAll 1 $ drawHabitDescription $ nonEmptyCursorCurrent cursor
@@ -162,8 +160,8 @@ drawHabitDescription :: Habit -> Widget n
 drawHabitDescription Habit {..} =
   let Goal {..} = habitGoal
    in vBox
-        [ hBox [str "Name: ", withAttr nameAttr $ txtWrap habitName],
-          hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txtWrap habitDescription],
+        [ hBox [str "Name: ", withAttr nameAttr $ txt habitName],
+          hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txt habitDescription],
           hBox
             [ str "Goal: ",
               markup
