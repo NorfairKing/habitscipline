@@ -27,13 +27,15 @@ in
                   hosts =
                     mkOption {
                       type = types.listOf (types.str);
-                      example = "api.habitscipline.cs-syd.eu";
+                      default = [];
+                      example = [ "api.habitscipline.cs-syd.eu" ];
                       description = "The host to serve api requests on";
                     };
                   port =
                     mkOption {
                       type = types.int;
-                      example = 8001;
+                      default = 8000;
+                      example = 8000;
                       description = "The port to serve api requests on";
                     };
                   local-backup =
@@ -56,55 +58,6 @@ in
                 };
             };
           default = null;
-        };
-      web-server =
-        mkOption {
-          type =
-            types.submodule {
-              options =
-                {
-                  enable = mkEnableOption "Habitscipline Web Server";
-                  api-url =
-                    mkOption {
-                      type = types.str;
-                      example = "api.habitscipline.cs-syd.eu.eu";
-                      description = "The url for the api to use";
-                    };
-                  log-level =
-                    mkOption {
-                      type = types.str;
-                      example = "Debug";
-                      default = "Warn";
-                      description = "The log level to use";
-                    };
-                  hosts =
-                    mkOption {
-                      type = types.listOf (types.str);
-                      example = "habitscipline.cs-syd.eu";
-                      description = "The host to serve web requests on";
-                    };
-                  port =
-                    mkOption {
-                      type = types.int;
-                      example = 8002;
-                      description = "The port to serve web requests on";
-                    };
-                  google-analytics-tracking =
-                    mkOption {
-                      type = types.nullOr types.str;
-                      example = "XX-XXXXXXXX-XX";
-                      default = null;
-                      description = "The Google analytics tracking code";
-                    };
-                  google-search-console-verification =
-                    mkOption {
-                      type = types.nullOr types.str;
-                      example = "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-                      default = null;
-                      description = "The Google search console verification code";
-                    };
-                };
-            };
         };
     };
   config =
@@ -151,7 +104,7 @@ in
       api-server-host =
         with cfg.api-server;
 
-        optionalAttrs enable {
+        optionalAttrs (enable && hosts) {
           "${head hosts}" =
             {
               enableACME = true;
@@ -206,71 +159,11 @@ in
             }
           )
         );
-
-      # The web server
-      web-server-working-dir = working-dir + "web-server/";
-      web-server-data-dir = web-server-working-dir + "web-server/";
-      web-server-service =
-        with cfg.web-server;
-        optionalAttrs enable {
-          "habitscipline-web-server-${envname}" = {
-            description = "Habitscipline web server ${envname} Service";
-            wantedBy = [ "multi-user.target" ];
-            environment =
-              {
-                "HABITSCIPLINE_WEB_SERVER_API_URL" = "${api-url}";
-                "HABITSCIPLINE_WEB_SERVER_LOG_LEVEL" = "${builtins.toString log-level}";
-                "HABITSCIPLINE_WEB_SERVER_PORT" = "${builtins.toString port}";
-                "HABITSCIPLINE_WEB_SERVER_DATA_DIR" = web-server-data-dir;
-              } // optionalAttrs (!builtins.isNull google-analytics-tracking) {
-                "HABITSCIPLINE_WEB_SERVER_GOOGLE_ANALYTICS_TRACKING" = "${google-analytics-tracking}";
-              } // optionalAttrs (!builtins.isNull google-search-console-verification) {
-                "HABITSCIPLINE_WEB_SERVER_GOOGLE_SEARCH_CONSOLE_VERIFICATION" = "${google-search-console-verification}";
-              };
-            script =
-              ''
-                mkdir -p "${web-server-working-dir}"
-                ${habitsciplinePkgs.habitscipline-web-server}/bin/habitscipline-web-server \
-                  serve
-              '';
-            serviceConfig =
-              {
-                WorkingDirectory = web-server-working-dir;
-                Restart = "always";
-                RestartSec = 1;
-                Nice = 15;
-              };
-            unitConfig =
-              {
-                StartLimitIntervalSec = 0;
-                # ensure Restart=always is always honoured
-              };
-          };
-        };
-      web-server-host =
-        with cfg.web-server;
-
-        optionalAttrs enable {
-          "${head hosts}" =
-            {
-              enableACME = true;
-              forceSSL = true;
-              locations."/" = {
-                proxyPass = "http://localhost:${builtins.toString port}";
-                # Just to make sure we don't run into 413 errors on big syncs
-                extraConfig = ''
-                  client_max_body_size 0;
-                '';
-              };
-              serverAliases = tail hosts;
-            };
-        };
     in
       mkIf cfg.enable {
         systemd.services =
           concatAttrs [
             api-server-service
-            web-server-service
             local-backup-service
           ];
         systemd.timers =
@@ -279,12 +172,10 @@ in
           ];
         networking.firewall.allowedTCPPorts = builtins.concatLists [
           (optional cfg.api-server.enable cfg.api-server.port)
-          (optional cfg.web-server.enable cfg.web-server.port)
         ];
         services.nginx.virtualHosts =
           concatAttrs [
             api-server-host
-            web-server-host
           ];
       };
 }
