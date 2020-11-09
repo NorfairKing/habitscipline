@@ -60,37 +60,33 @@ daysShown = 20
 days :: Day -> [Day]
 days maxDay = [addDays (- daysShown) maxDay .. maxDay]
 
-header :: (Day -> Widget n) -> Day -> Widget n
-header func = hBox . intersperse (str " ") . map func . days
-
-monthsHeader :: Day -> Widget n
-monthsHeader = header $ \d ->
-  let (_, month, md) = toGregorian d
-   in str $
-        if md == 1
-          then printf "%2d" month
-          else "  "
-
-dowsHeader :: Day -> Widget n
-dowsHeader = header $ \d ->
-  str $
-    case dayOfWeek d of
-      Monday -> "Mo"
-      Tuesday -> "Tu"
-      Wednesday -> "We"
-      Thursday -> "Th"
-      Friday -> "Fr"
-      Saturday -> "Sa"
-      Sunday -> "Su"
-
-daysHeader :: Day -> Day -> Widget n
-daysHeader today d_ = withAttr headerAttr $ flip header d_ $ \d ->
-  let (_, _, md) = toGregorian d
-   in ( if d == today
-          then withDefAttr todayAttr
-          else id
-      )
-        $ str (printf "%2d" md)
+header :: Day -> Day -> Widget n
+header today maxDay =
+  let ds = days maxDay
+      dayColumn d =
+        let (_, month, md) = toGregorian d
+            dow = dayOfWeek d
+            withTodayAttr =
+              if d == today
+                then withDefAttr todayAttr
+                else id
+         in vBox
+              [ str $
+                  if md == 1
+                    then printf "%2d" month
+                    else "  ",
+                withTodayAttr $ txt $
+                  case dow of
+                    Monday -> "Mo"
+                    Tuesday -> "Tu"
+                    Wednesday -> "We"
+                    Thursday -> "Th"
+                    Friday -> "Fr"
+                    Saturday -> "Sa"
+                    Sunday -> "Su",
+                withTodayAttr $ str (printf "%2d" md)
+              ]
+   in hBox . intersperse (str " ") $ map dayColumn ds
 
 habitRow :: Day -> Day -> Load (Maybe (NonEmptyCursor HabitUuid)) -> TextCursor -> Habit -> EntryMap -> Widget ResourceName
 habitRow selectedDay maxDay habitCursor amountCursor h em =
@@ -175,8 +171,8 @@ drawHistoryState HistoryState {..} =
         padLeftRight 2 $ padAll 1 $
           vBox
             [ vBox $
-                [monthsHeader historyStateMaxDay, dowsHeader historyStateMaxDay, daysHeader historyStateToday historyStateMaxDay]
-                  ++ map (uncurry (habitRow historyStateDay historyStateMaxDay historyStateHabitCursor historyStateAmountCursor)) (M.toList m),
+                header historyStateToday historyStateMaxDay
+                  : map (uncurry (habitRow historyStateDay historyStateMaxDay historyStateHabitCursor historyStateAmountCursor)) (M.toList m),
               padTop (Pad 1) $ case historyStateHabitCursor of
                 Loading -> emptyWidget
                 Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
