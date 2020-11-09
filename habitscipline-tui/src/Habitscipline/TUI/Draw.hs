@@ -44,7 +44,7 @@ buildAttrMap =
         (goodAttr, fg green),
         (todayAttr, fg magenta),
         (selectedBothAttr, bg white),
-        (goalMetAttr, withStyle defAttr underline),
+        (goalMetAttr, withStyle (fg green) underline),
         (goalNotMetAttr, defAttr)
       ]
 
@@ -57,6 +57,116 @@ drawTui = \case
 daysShown :: Integer
 daysShown = 20
 
+days :: Day -> [Day]
+days maxDay = [addDays (- daysShown) maxDay .. maxDay]
+
+header :: (Day -> Widget n) -> Day -> Widget n
+header func = hBox . intersperse (str " ") . map func . days
+
+monthsHeader :: Day -> Widget n
+monthsHeader = header $ \d ->
+  let (_, month, md) = toGregorian d
+   in str $
+        if md == 1
+          then printf "%2d" month
+          else "  "
+
+dowsHeader :: Day -> Widget n
+dowsHeader = header $ \d ->
+  str $
+    case dayOfWeek d of
+      Monday -> "Mo"
+      Tuesday -> "Tu"
+      Wednesday -> "We"
+      Thursday -> "Th"
+      Friday -> "Fr"
+      Saturday -> "Sa"
+      Sunday -> "Su"
+
+daysHeader :: Day -> Day -> Widget n
+daysHeader today d_ = withAttr headerAttr $ flip header d_ $ \d ->
+  let (_, _, md) = toGregorian d
+   in ( if d == today
+          then withDefAttr todayAttr
+          else id
+      )
+        $ str (printf "%2d" md)
+
+habitRow :: Day -> Day -> Load (Maybe (NonEmptyCursor HabitUuid)) -> TextCursor -> Habit -> EntryMap -> Widget ResourceName
+habitRow selectedDay maxDay habitCursor amountCursor h em =
+  let g@Goal {..} = habitGoal h
+      ds = days maxDay
+      isSelectedDay = (== selectedDay)
+      isSelectedHabit =
+        case habitCursor of
+          Loading -> False
+          Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
+      amountCell :: Day -> Widget ResourceName
+      amountCell d =
+        let met = entryMapGoalMet g d em
+            withMetAttr = case met of
+              Nothing -> id
+              Just True -> withDefAttr goalMetAttr
+              Just False -> withDefAttr goalNotMetAttr
+            showAmount :: Maybe Word -> String
+            showAmount = \case
+              Nothing -> "  "
+              Just w ->
+                if goalBoolean
+                  then case goalType of
+                    PositiveHabit ->
+                      if w > 0
+                        then " ✓"
+                        else "  "
+                    NegativeHabit ->
+                      if w > 0
+                        then " ✗"
+                        else " ✓"
+                  else printf "%2d" w
+            amountWidget :: Maybe Word -> Widget ResourceName
+            amountWidget mw =
+              if isSelectedDay d && isSelectedHabit
+                then
+                  forceAttr selectedBothAttr
+                    $ ( case mw of
+                          Nothing -> id
+                          Just w -> if w < 10 then padLeft (Pad 1) else id
+                      )
+                    $ selectedTextCursorWidget ResourceTextCursor
+                    $ if textCursorNull amountCursor
+                      then case mw of
+                        Nothing -> emptyTextCursor
+                        Just w -> maybe emptyTextCursor textCursorSelectStart $ makeTextCursor (T.pack $ show w)
+                      else amountCursor
+                else str $ showAmount mw
+            mAmount = case entryMapLookup em d of
+              Exactly w -> Just w
+              NoDataBeforeFirst -> Nothing
+              NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
+              AssumedZero -> Just 0
+            isGood a = case goalType of
+              PositiveHabit -> a > 0
+              NegativeHabit -> a <= 0
+            goodModifier a = if isGood a then withAttr goodAttr else id
+         in withMetAttr $ case mAmount of
+              Nothing -> amountWidget Nothing
+              Just a -> goodModifier a $ amountWidget $ Just a
+      spacerCell :: Day -> Day -> Widget n
+      spacerCell d1 d2 = ($ str " ") $ case (entryMapGoalMet g d1 em, entryMapGoalMet g d2 em) of
+        (Nothing, Nothing) -> id
+        (Just True, Nothing) -> id
+        (Just False, Nothing) -> id
+        (Nothing, Just True) -> id
+        (Nothing, Just False) -> id
+        (Just True, Just True) -> withAttr goalMetAttr
+        (Just True, Just False) -> withAttr goalNotMetAttr
+        (Just False, Just True) -> withAttr goalNotMetAttr
+        (Just False, Just False) -> withAttr goalNotMetAttr
+      goDays [] = [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
+      goDays [d] = amountCell d : goDays []
+      goDays (d1 : d2 : rest) = amountCell d1 : spacerCell d1 d2 : goDays (d2 : rest)
+   in hBox $ goDays ds
+
 drawHistoryState :: HistoryState -> [Widget ResourceName]
 drawHistoryState HistoryState {..} =
   [ centerLayer $ borderWithLabel (str "[ Habitscipline ]") $ case historyStateHabitMaps of
@@ -64,91 +174,9 @@ drawHistoryState HistoryState {..} =
       Loaded m ->
         padLeftRight 2 $ padAll 1 $
           vBox
-            [ let today = historyStateMaxDay
-                  days = [addDays (- daysShown) today .. today]
-                  monthHeader d =
-                    let (_, month, md) = toGregorian d
-                     in str $
-                          if md == 1
-                            then printf "%2d" month
-                            else "  "
-                  monthsHeader = map monthHeader days ++ [str " "]
-                  dowHeader d = str $ case dayOfWeek d of
-                    Monday -> "Mo"
-                    Tuesday -> "Tu"
-                    Wednesday -> "We"
-                    Thursday -> "Th"
-                    Friday -> "Fr"
-                    Saturday -> "Sa"
-                    Sunday -> "Su"
-                  dowsHeader = map dowHeader days ++ [str " "]
-                  dayHeader d =
-                    withAttr headerAttr $
-                      let (_, _, md) = toGregorian d
-                       in ( if d == historyStateToday
-                              then withDefAttr todayAttr
-                              else id
-                          )
-                            $ str (printf "%2d" md)
-                  daysHeader = map dayHeader days ++ [str " "]
-                  isSelectedDay = (== historyStateDay)
-                  isSelectedHabit h =
-                    case historyStateHabitCursor of
-                      Loading -> False
-                      Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
-                  amountCell :: Habit -> EntryMap -> Day -> Widget ResourceName
-                  amountCell h em d =
-                    let g@Goal {..} = habitGoal h
-                        met = entryMapGoalMet g d em
-                        withMetAttr = case met of
-                          Nothing -> id
-                          Just True -> withDefAttr goalMetAttr
-                          Just False -> withDefAttr goalNotMetAttr
-                        showAmount :: Word -> String
-                        showAmount w =
-                          if goalBoolean
-                            then case goalType of
-                              PositiveHabit ->
-                                if w > 0
-                                  then " ✓"
-                                  else "  "
-                              NegativeHabit ->
-                                if w > 0
-                                  then " ✗"
-                                  else " ✓"
-                            else printf "%2d" w
-                        amountWidget :: Maybe Word -> Widget ResourceName
-                        amountWidget mw =
-                          if isSelectedDay d && isSelectedHabit h
-                            then
-                              forceAttr selectedBothAttr
-                                $ ( case mw of
-                                      Nothing -> id
-                                      Just w -> if w < 10 then padLeft (Pad 1) else id
-                                  )
-                                $ selectedTextCursorWidget ResourceTextCursor
-                                $ if textCursorNull historyStateAmountCursor
-                                  then case mw of
-                                    Nothing -> emptyTextCursor
-                                    Just w -> maybe emptyTextCursor textCursorSelectStart $ makeTextCursor (T.pack $ show w)
-                                  else historyStateAmountCursor
-                            else case mw of
-                              Nothing -> str "  "
-                              Just w -> str $ showAmount w
-                        mAmount = case entryMapLookup em d of
-                          Exactly w -> Just w
-                          NoDataBeforeFirst -> Nothing
-                          NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
-                          AssumedZero -> Just 0
-                        isGood a = case goalType of
-                          PositiveHabit -> a > 0
-                          NegativeHabit -> a <= 0
-                        goodModifier a = if isGood a then withAttr goodAttr else id
-                     in withMetAttr $ case mAmount of
-                          Nothing -> amountWidget Nothing
-                          Just a -> goodModifier a $ amountWidget $ Just a
-                  habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
-               in tableWidget $ monthsHeader : dowsHeader : daysHeader : map (uncurry habitRow) (M.toList m),
+            [ vBox $
+                [monthsHeader historyStateMaxDay, dowsHeader historyStateMaxDay, daysHeader historyStateToday historyStateMaxDay]
+                  ++ map (uncurry (habitRow historyStateDay historyStateMaxDay historyStateHabitCursor historyStateAmountCursor)) (M.toList m),
               padTop (Pad 1) $ case historyStateHabitCursor of
                 Loading -> emptyWidget
                 Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
