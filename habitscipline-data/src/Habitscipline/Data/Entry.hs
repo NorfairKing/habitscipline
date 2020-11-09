@@ -8,6 +8,7 @@ module Habitscipline.Data.Entry where
 import Data.Aeson
 import qualified Data.Map as M
 import Data.Map (Map)
+import Data.Ord
 import Data.Time
 import Data.Validity
 import Data.Validity.Containers ()
@@ -183,7 +184,7 @@ buildStreaks = go Nothing
         Nothing -> s : go Nothing rest
 
 entryMapLongestStreak :: Goal -> EntryMap -> Day -> Maybe Streak
-entryMapLongestStreak g em today = maximumMay $ entryMapStreaks g em today
+entryMapLongestStreak g em today = maximumByMay (comparing streakDays) $ entryMapStreaks g em today
 
 entryMapLatestStreak :: Goal -> EntryMap -> Day -> Maybe Streak
 entryMapLatestStreak g em today = lastMay $ entryMapStreaks g em today
