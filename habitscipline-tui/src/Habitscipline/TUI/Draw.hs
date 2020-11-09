@@ -121,20 +121,14 @@ habitRow selectedDay maxDay habitCursor amountCursor h em =
                   else printf "%2d" w
             amountWidget :: Maybe Word -> Widget ResourceName
             amountWidget mw =
-              if isSelectedDay d && isSelectedHabit
-                then
-                  forceAttr selectedBothAttr
-                    $ ( case mw of
-                          Nothing -> id
-                          Just w -> if w < 10 then padLeft (Pad 1) else id
-                      )
-                    $ selectedTextCursorWidget ResourceTextCursor
-                    $ if textCursorNull amountCursor
-                      then case mw of
-                        Nothing -> emptyTextCursor
-                        Just w -> maybe emptyTextCursor textCursorSelectStart $ makeTextCursor (T.pack $ show w)
-                      else amountCursor
-                else str $ showAmount mw
+              hLimit 2 $ padLeft Max $
+                if isSelectedDay d && isSelectedHabit
+                  then
+                    forceAttr selectedBothAttr $
+                      selectedTextCursorWidget
+                        ResourceTextCursor
+                        amountCursor
+                  else str $ showAmount mw
             mAmount = case entryMapLookup em d of
               Exactly w -> Just w
               NoDataBeforeFirst -> Nothing
