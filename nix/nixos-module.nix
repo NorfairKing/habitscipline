@@ -104,7 +104,7 @@ in
       api-server-host =
         with cfg.api-server;
 
-        optionalAttrs (enable && hosts) {
+        optionalAttrs (enable && hosts != []) {
           "${head hosts}" =
             {
               enableACME = true;
