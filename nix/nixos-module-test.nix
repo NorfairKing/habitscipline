@@ -57,7 +57,6 @@ pkgs.nixosTest (
           return f"su - {user} -c {quote(cmd)}"
 
 
-      machine.succeed(su("testuser", "ls ~/"))
       machine.succeed(su("testuser", "cat ~/.config/habitscipline/config.yaml"))
 
       machine.succeed(su("testuser", "habitscipline register"))
