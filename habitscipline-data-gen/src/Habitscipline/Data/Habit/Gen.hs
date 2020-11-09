@@ -20,7 +20,7 @@ instance GenValid HabitType where
 instance GenValid Goal where
   shrinkValid = shrinkValidStructurallyWithoutExtraFiltering
   genValid = sized $ \s -> do
-    goalUnit <- genValid
+    goalBoolean <- genValid
     goalNumerator <- fromIntegral <$> choose (0, s) -- Really big numerators and denominators don't help
     goalDenominator <- max 1 . fromIntegral <$> choose (1, s)
     pure Goal {..}

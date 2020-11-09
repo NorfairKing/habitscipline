@@ -95,16 +95,18 @@ drawHistoryState HistoryState {..} =
                     case historyStateHabitCursor of
                       Loading -> False
                       Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
+                  amountCell :: Habit -> EntryMap -> Day -> Widget ResourceName
                   amountCell h em d =
-                    let met = entryMapGoalMet (habitType h) (habitBoolean h) (habitGoal h) d em
+                    let g@Goal {..} = habitGoal h
+                        met = entryMapGoalMet g d em
                         withMetAttr = case met of
                           Nothing -> id
                           Just True -> withDefAttr goalMetAttr
                           Just False -> withDefAttr goalNotMetAttr
                         showAmount :: Word -> String
                         showAmount w =
-                          if habitBoolean h
-                            then case habitType h of
+                          if goalBoolean
+                            then case goalType of
                               PositiveHabit ->
                                 if w > 0
                                   then " ✓"
@@ -137,7 +139,7 @@ drawHistoryState HistoryState {..} =
                           NoDataBeforeFirst -> Nothing
                           NoDataAfterLast -> Just 0 -- Assume 0 so that it doesn't require extra effort from the user
                           AssumedZero -> Just 0
-                        isGood a = case habitType h of
+                        isGood a = case goalType of
                           PositiveHabit -> a > 0
                           NegativeHabit -> a <= 0
                         goodModifier a = if isGood a then withAttr goodAttr else id
@@ -153,8 +155,8 @@ drawHistoryState HistoryState {..} =
                   Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
                     Nothing -> emptyWidget
                     Just (h@Habit {..}, em) ->
-                      let longestStreak = entryMapLongestStreak habitType habitBoolean habitGoal em historyStateToday
-                          latestStreak = entryMapLatestStreak habitType habitBoolean habitGoal em historyStateToday
+                      let longestStreak = entryMapLongestStreak habitGoal em historyStateToday
+                          latestStreak = entryMapLatestStreak habitGoal em historyStateToday
                           currentStreak = do
                             latest <- latestStreak
                             guard (streakIsCurrent latest historyStateToday)
@@ -200,12 +202,12 @@ drawHabitDescription Habit {..} =
             [ str "Goal: ",
               markup
                 $ mconcat
-                $ case habitType of
+                $ case goalType of
                   PositiveHabit ->
                     [ "I want to achieve ",
                       T.pack (show goalNumerator) @? numeratorAttr,
                       " ",
-                      goalUnit @? unitAttr,
+                      habitUnit @? unitAttr,
                       " every ",
                       T.pack (show goalDenominator) @? denominatorAttr,
                       " days."
@@ -214,7 +216,7 @@ drawHabitDescription Habit {..} =
                     [ "I want to have at most ",
                       T.pack (show goalNumerator) @? numeratorAttr,
                       " ",
-                      goalUnit @? unitAttr,
+                      habitUnit @? unitAttr,
                       " every ",
                       T.pack (show goalDenominator) @? denominatorAttr,
                       " days."
@@ -242,18 +244,18 @@ drawNewHabitState nhs@NewHabitState {..} =
                   [ str "Description: ",
                     withAttr descriptionAttr $ textWithSelection SelectDescription newHabitStateDescription
                   ],
-              selIf SelectType $
+              selIf SelectUnit $
                 hBox
-                  [ str "Type: ",
-                    withAttr typeAttr $ txt $ renderHabitType newHabitStateType
+                  [ str "Unit: ",
+                    withAttr unitAttr $ textWithSelection SelectUnit newHabitStateUnit
                   ],
               borderWithLabel (str "[ Goal ]")
                 $ padLeftRight 1
                 $ vBox
-                  [ selIf SelectGoalUnit $
+                  [ selIf SelectGoalType $
                       hBox
-                        [ str "Unit: ",
-                          withAttr unitAttr $ textWithSelection SelectGoalUnit newHabitStateGoalUnit
+                        [ str "Type: ",
+                          withAttr typeAttr $ txt $ renderHabitType newHabitStateGoalType
                         ],
                     selIf SelectGoalNumerator $
                       hBox
@@ -267,12 +269,12 @@ drawNewHabitState nhs@NewHabitState {..} =
                         ],
                     padTop (Pad 1) $ markup
                       $ mconcat
-                      $ case newHabitStateType of
+                      $ case newHabitStateGoalType of
                         PositiveHabit ->
                           [ "I want to achieve ",
                             rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
                             " ",
-                            rebuildTextCursor newHabitStateGoalUnit @? unitAttr,
+                            rebuildTextCursor newHabitStateUnit @? unitAttr,
                             " every ",
                             rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
                             " days."
@@ -281,7 +283,7 @@ drawNewHabitState nhs@NewHabitState {..} =
                           [ "I want to have at most ",
                             rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
                             " ",
-                            rebuildTextCursor newHabitStateGoalUnit @? unitAttr,
+                            rebuildTextCursor newHabitStateUnit @? unitAttr,
                             " every ",
                             rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
                             " days."

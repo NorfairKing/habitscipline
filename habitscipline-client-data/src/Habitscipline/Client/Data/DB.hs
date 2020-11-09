@@ -25,31 +25,31 @@ share
   [persistLowerCase|
 
 ClientHabit sql=habit
-    serverId ServerHabitId Maybe
-    serverTime ServerTime Maybe
-    deletedLocally Bool
-    changedLocally Bool
+    serverId ServerHabitId Maybe sql=server_id
+    serverTime ServerTime Maybe sql=server_time
+    deletedLocally Bool sql=deleted_locally
+    changedLocally Bool sql=changed_locally
 
-    uuid HabitUuid -- Not modifyable
-    name Text
-    description Text Maybe
-    boolean Bool default=1 -- True
-    type HabitType
-    goalUnit Text
-    goalNumerator Word
-    goalDenominator Word
+    uuid HabitUuid sql=uuid -- Not modifyable
+    name Text sql=name
+    description Text Maybe sql=description
+    unit Text sql=unit
+    goalType HabitType sql=type
+    goalBoolean Bool sql=boolean
+    goalNumerator Word sql=numerator
+    goalDenominator Word sql=denominator
 
     deriving Show Eq
 
 ClientEntry sql=entry
-    serverId ServerEntryId Maybe
-    serverTime ServerTime Maybe
-    deletedLocally Bool
-    changedLocally Bool
+    serverId ServerEntryId Maybe sql=server_id
+    serverTime ServerTime Maybe sql=server_time
+    deletedLocally Bool sql=deleted_locally
+    changedLocally Bool sql=changed_locally
 
-    habit HabitUuid -- Not modifyable
-    day Day -- Not modifyable
-    amount Word  -- Modifyable
+    habit HabitUuid sql=habit -- Not modifyable
+    day Day sql=day -- Not modifyable
+    amount Word sql=amount -- Modifyable
 
     UniqueClientEntryDay habit day
 |]
@@ -60,9 +60,9 @@ clientMakeHabit ClientHabit {..} = (clientHabitServerId, clientHabitServerTime, 
     habitUuid = clientHabitUuid
     habitName = clientHabitName
     habitDescription = clientHabitDescription
-    habitType = clientHabitType
-    habitBoolean = clientHabitBoolean
-    goalUnit = clientHabitGoalUnit
+    habitUnit = clientHabitUnit
+    goalType = clientHabitGoalType
+    goalBoolean = clientHabitGoalBoolean
     goalNumerator = clientHabitGoalNumerator
     goalDenominator = clientHabitGoalDenominator
     habitGoal = Goal {..}
@@ -84,10 +84,10 @@ makeClientHabit clientHabitServerId clientHabitServerTime Habit {..} = ClientHab
     clientHabitUuid = habitUuid
     clientHabitName = habitName
     clientHabitDescription = habitDescription
-    clientHabitType = habitType
-    clientHabitBoolean = habitBoolean
+    clientHabitUnit = habitUnit
     Goal {..} = habitGoal
-    clientHabitGoalUnit = goalUnit
+    clientHabitGoalBoolean = goalBoolean
+    clientHabitGoalType = goalType
     clientHabitGoalNumerator = goalNumerator
     clientHabitGoalDenominator = goalDenominator
 

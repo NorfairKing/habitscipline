@@ -102,12 +102,12 @@ instance Validity RangeSum
 
 -- O(n) in the number of entries between these two days
 entryMapRangeSum :: Bool -> EntryMap -> Day -> Day -> RangeSum
-entryMapRangeSum habitBoolean (EntryMap em') beginDay endDay =
+entryMapRangeSum goalBoolean (EntryMap em') beginDay endDay =
   let (_, geBeginMap) = M.split (addDays (-1) beginDay) em' -- O(Log n)
       (em, _) = M.split (addDays 1 endDay) geBeginMap -- O(Log n)
       count :: Word -> Word
       count w =
-        if habitBoolean
+        if goalBoolean
           then if w > 0 then 1 else 0
           else w
    in case (,) <$> M.lookupMin em' <*> M.lookupMax em' of
@@ -125,18 +125,18 @@ entryMapRangeSum habitBoolean (EntryMap em') beginDay endDay =
 -- For negative habits, a goal is met if the total amount over the last *denominator* days
 -- is _less_ than *numerator*.
 -- O(n) in the number of entries
-entryMapGoalMet :: HabitType -> Bool -> Goal -> Day -> EntryMap -> Maybe Bool -- Nothing means not enough data
-entryMapGoalMet ht habitBoolean Goal {..} endDay em =
+entryMapGoalMet :: Goal -> Day -> EntryMap -> Maybe Bool -- Nothing means not enough data
+entryMapGoalMet Goal {..} endDay em =
   let beginDay = addDays (- fromIntegral (goalDenominator - 1)) endDay
-   in case entryMapRangeSum habitBoolean em beginDay endDay of
+   in case entryMapRangeSum goalBoolean em beginDay endDay of
         NoSum -> Nothing
-        PartialSumBegin w -> case ht of
+        PartialSumBegin w -> case goalType of
           PositiveHabit ->
             if w >= goalNumerator
               then Just True -- If we already achieve our goal earlier, we can work with partial data.
               else Nothing
           NegativeHabit -> Nothing
-        PartialSumEnd w -> case ht of
+        PartialSumEnd w -> case goalType of
           PositiveHabit ->
             if w >= goalNumerator
               then Just True -- If we already achieve our goal earlier, we can work with partial data.
@@ -145,26 +145,26 @@ entryMapGoalMet ht habitBoolean Goal {..} endDay em =
             if w <= goalNumerator
               then Just True -- We assume zero at the end
               else Nothing
-        PartialSumBoth w -> case ht of
+        PartialSumBoth w -> case goalType of
           PositiveHabit ->
             if w >= goalNumerator
               then Just True -- If we already achieve our goal earlier, we can work with partial data.
               else Nothing
           NegativeHabit -> Nothing
-        CompleteSum w -> Just $ case ht of
+        CompleteSum w -> Just $ case goalType of
           PositiveHabit -> w >= goalNumerator
           NegativeHabit -> w <= goalNumerator
 
 -- [Note: Complexity]
 -- This is currently linear in the number of days between the first and the last entry.
 -- FIXME: I _think_ that can be sped up but it's not as simple as it seems.
-entryMapStreaks :: HabitType -> Bool -> Goal -> EntryMap -> Day -> [Streak]
-entryMapStreaks ht b g@Goal {..} em@(EntryMap m) endDay =
+entryMapStreaks :: Goal -> EntryMap -> Day -> [Streak]
+entryMapStreaks g@Goal {..} em@(EntryMap m) endDay =
   case M.lookupMin m of
     Nothing -> [] -- No entries, no streaks
     Just (beginDay, _) ->
       let ends = [beginDay .. endDay]
-          goalMets = map (\end -> (end, entryMapGoalMet ht b g end em)) ends
+          goalMets = map (\end -> (end, entryMapGoalMet g end em)) ends
        in buildStreaks goalMets
 
 buildStreaks :: [(Day, Maybe Bool)] -> [Streak]
@@ -182,8 +182,8 @@ buildStreaks = go Nothing
         Just False -> s : go Nothing rest
         Nothing -> s : go Nothing rest
 
-entryMapLongestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Day -> Maybe Streak
-entryMapLongestStreak ht b g em today = maximumMay $ entryMapStreaks ht b g em today
+entryMapLongestStreak :: Goal -> EntryMap -> Day -> Maybe Streak
+entryMapLongestStreak g em today = maximumMay $ entryMapStreaks g em today
 
-entryMapLatestStreak :: HabitType -> Bool -> Goal -> EntryMap -> Day -> Maybe Streak
-entryMapLatestStreak ht b g em today = lastMay $ entryMapStreaks ht b g em today
+entryMapLatestStreak :: Goal -> EntryMap -> Day -> Maybe Streak
+entryMapLatestStreak g em today = lastMay $ entryMapStreaks g em today

@@ -42,30 +42,30 @@ User
 
 
 ServerHabit sql=habit
-  user UserId
+  user UserId sql=user
 
-  serverTime ServerTime
+  serverTime ServerTime sql=server_time
 
-  uuid HabitUuid -- Not modifyable
-  name Text
-  description Text Maybe
-  type HabitType
-  boolean Bool
-  goalUnit Text
-  goalNumerator Word
-  goalDenominator Word
+  uuid HabitUuid sql=uuid -- Not modifyable
+  name Text sql=name
+  description Text Maybe sql=description
+  unit Text sql=unit
+  goalType HabitType sql=type
+  goalBoolean Bool sql=boolean
+  goalNumerator Word sql=numerator
+  goalDenominator Word sql=denominator
 
   deriving Show Eq Ord Generic
 
 
 ServerEntry sql=entry
-  user UserId
+  user UserId sql=user
 
-  serverTime ServerTime
+  serverTime ServerTime sql=server_time
 
-  habit HabitUuid -- Not modifyable
-  day Day -- Not modifyable
-  amount Word
+  habit HabitUuid sql=uuid -- Not modifyable
+  day Day sql=day -- Not modifyable
+  amount Word sql=amount
 
   UniqueEntryDay habit user day
 |]
@@ -89,9 +89,9 @@ serverMakeHabit ServerHabit {..} = Timed Habit {..} serverHabitServerTime
     habitUuid = serverHabitUuid
     habitName = serverHabitName
     habitDescription = serverHabitDescription
-    habitType = serverHabitType
-    habitBoolean = serverHabitBoolean
-    goalUnit = serverHabitGoalUnit
+    habitUnit = serverHabitUnit
+    goalType = serverHabitGoalType
+    goalBoolean = serverHabitGoalBoolean
     goalNumerator = serverHabitGoalNumerator
     goalDenominator = serverHabitGoalDenominator
     habitGoal = Goal {..}
@@ -103,10 +103,10 @@ makeServerHabit serverHabitUser Habit {..} = ServerHabit {..}
     serverHabitServerTime = initialServerTime
     serverHabitName = habitName
     serverHabitDescription = habitDescription
-    serverHabitType = habitType
-    serverHabitBoolean = habitBoolean
+    serverHabitUnit = habitUnit
     Goal {..} = habitGoal
-    serverHabitGoalUnit = goalUnit
+    serverHabitGoalType = goalType
+    serverHabitGoalBoolean = goalBoolean
     serverHabitGoalNumerator = goalNumerator
     serverHabitGoalDenominator = goalDenominator
 

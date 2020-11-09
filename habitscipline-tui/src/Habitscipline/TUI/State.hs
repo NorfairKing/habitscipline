@@ -39,9 +39,9 @@ data NewHabitState
   = NewHabitState
       { newHabitStateName :: TextCursor,
         newHabitStateDescription :: TextCursor,
-        newHabitStateType :: HabitType,
-        newHabitStateBoolean :: Bool,
-        newHabitStateGoalUnit :: TextCursor,
+        newHabitStateUnit :: TextCursor,
+        newHabitStateGoalType :: HabitType,
+        newHabitStateGoalBoolean :: Bool,
         newHabitStateGoalNumerator :: TextCursor,
         newHabitStateGoalDenominator :: TextCursor,
         newHabitStateSelection :: NewHabitStateSelection
@@ -54,8 +54,7 @@ newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
       habitDescription =
         let t = rebuildTextCursor newHabitStateDescription
          in if T.null t then Nothing else Just t
-      habitType = newHabitStateType
-      habitBoolean = newHabitStateBoolean
+      habitUnit = rebuildTextCursor newHabitStateUnit
   let parseWord d tc =
         let t = rebuildTextCursor tc
          in if T.null t
@@ -63,7 +62,8 @@ newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
               else case readMaybe $ T.unpack t of
                 Nothing -> Left $ "Not a number: " <> t
                 Just w -> pure w
-  let goalUnit = rebuildTextCursor newHabitStateGoalUnit
+  let goalType = newHabitStateGoalType
+  let goalBoolean = newHabitStateGoalBoolean
   goalNumerator <- parseWord 1 newHabitStateGoalNumerator
   goalDenominator <- parseWord 1 newHabitStateGoalDenominator
   let habitGoal = Goal {..}
@@ -72,8 +72,8 @@ newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
 data NewHabitStateSelection
   = SelectName
   | SelectDescription
-  | SelectType
-  | SelectGoalUnit
+  | SelectUnit
+  | SelectGoalType
   | SelectGoalNumerator
   | SelectGoalDenominator
   | SelectCancelButton

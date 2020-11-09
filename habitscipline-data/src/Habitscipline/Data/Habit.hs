@@ -35,8 +35,7 @@ data Habit
       { habitUuid :: !HabitUuid,
         habitName :: !Text,
         habitDescription :: !(Maybe Text),
-        habitType :: !HabitType,
-        habitBoolean :: !Bool,
+        habitUnit :: !Text, -- Trainings, Grams of sugar, ...
         habitGoal :: !Goal
       }
   deriving (Show, Eq, Ord, Generic)
@@ -49,8 +48,7 @@ instance FromJSON Habit where
       <$> o .: "uuid"
       <*> o .: "name"
       <*> o .:? "description"
-      <*> o .: "type"
-      <*> o .: "boolean"
+      <*> o .: "unit"
       <*> o .: "goal"
 
 instance ToJSON Habit where
@@ -59,8 +57,7 @@ instance ToJSON Habit where
       [ "uuid" .= habitUuid,
         "name" .= habitName,
         "description" .= habitDescription,
-        "type" .= habitType,
-        "boolean" .= habitBoolean,
+        "unit" .= habitUnit,
         "goal" .= habitGoal
       ]
 
@@ -97,7 +94,8 @@ instance PersistFieldSql HabitType where
 
 data Goal
   = Goal
-      { goalUnit :: !Text, -- Trainings, Grams of sugar, ...
+      { goalType :: !HabitType, -- Positive or negative
+        goalBoolean :: !Bool, -- Whether it's a boolean habit
         goalNumerator :: !Word, -- How many of the unit
         goalDenominator :: !Word -- How many days
       }
@@ -106,6 +104,19 @@ data Goal
 instance Validity Goal where
   validate g@Goal {..} = mconcat [genericValidate g, declare "The denominator is not zero" $ goalDenominator > 0]
 
-instance FromJSON Goal
+instance FromJSON Goal where
+  parseJSON = withObject "Goal" $ \o ->
+    Goal
+      <$> o .: "type"
+      <*> o .: "boolean"
+      <*> o .: "numerator"
+      <*> o .: "denominator"
 
-instance ToJSON Goal
+instance ToJSON Goal where
+  toJSON Goal {..} =
+    object
+      [ "type" .= goalType,
+        "boolean" .= goalBoolean,
+        "numerator" .= goalNumerator,
+        "denominator" .= goalDenominator
+      ]
