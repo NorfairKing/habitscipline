@@ -31,6 +31,7 @@ pkgs.nixosTest (
           ./home-manager-module.nix
         ];
         xdg.enable = true;
+        home.stateVersion = "20.09";
         programs.habitscipline = {
           enable = true;
           sync = {
