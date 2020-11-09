@@ -119,47 +119,55 @@ handleNewHabitState chan s e =
       SelectName ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectDescription}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCreateButton}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectDescription}
           _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateName = tc}) <$> handleTC (newHabitStateName s) e
       SelectDescription ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalType}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectName}
-          _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateDescription = tc}) <$> handleTC (newHabitStateDescription s) e
-      SelectGoalType ->
-        case vtye of
-          EvKey KEsc [] -> toHabitList chan
           EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectUnit}
-          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectDescription}
-          EvKey KLeft [] -> continue $ StateNewHabit $ s {newHabitStateGoalType = PositiveHabit}
-          EvKey KRight [] -> continue $ StateNewHabit $ s {newHabitStateGoalType = NegativeHabit}
-          _ -> continue $ StateNewHabit s
+          _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateDescription = tc}) <$> handleTC (newHabitStateDescription s) e
       SelectUnit ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalNumerator}
-          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalType}
+          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectDescription}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalType}
           _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateUnit = tc}) <$> handleTC (newHabitStateUnit s) e
+      SelectGoalType ->
+        case vtye of
+          EvKey KEsc [] -> toHabitList chan
+          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectUnit}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalBoolean}
+          EvKey KLeft [] -> continue $ StateNewHabit $ s {newHabitStateGoalType = PositiveHabit}
+          EvKey KRight [] -> continue $ StateNewHabit $ s {newHabitStateGoalType = NegativeHabit}
+          _ -> continue $ StateNewHabit s
+      SelectGoalBoolean ->
+        case vtye of
+          EvKey KEsc [] -> toHabitList chan
+          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalType}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalNumerator}
+          EvKey KLeft [] -> continue $ StateNewHabit $ s {newHabitStateGoalBoolean = False}
+          EvKey KRight [] -> continue $ StateNewHabit $ s {newHabitStateGoalBoolean = True}
+          _ -> continue $ StateNewHabit s
       SelectGoalNumerator ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
+          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalBoolean}
           EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalDenominator}
-          EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectUnit}
           _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateGoalNumerator = tc}) <$> handleTC (newHabitStateGoalNumerator s) e
       SelectGoalDenominator ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCancelButton}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalNumerator}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCancelButton}
           _ -> fmap (\tc -> StateNewHabit $ s {newHabitStateGoalDenominator = tc}) <$> handleTC (newHabitStateGoalDenominator s) e
       SelectCancelButton ->
         case vtye of
           EvKey KEsc [] -> toHabitList chan
           EvKey KEnter [] -> toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCreateButton}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectGoalDenominator}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCreateButton}
           _ -> continue $ StateNewHabit s
       SelectCreateButton ->
         case vtye of
@@ -171,8 +179,8 @@ handleNewHabitState chan s e =
               Right h -> do
                 liftIO $ writeBChan chan $ RequestCreateHabit h
                 toHabitList chan
-          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectName}
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCancelButton}
+          EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectName}
           _ -> continue $ StateNewHabit s
     _ -> continue $ StateNewHabit s
 

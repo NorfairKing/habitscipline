@@ -32,6 +32,7 @@ buildAttrMap =
       [ (nameAttr, fg yellow),
         (descriptionAttr, defAttr),
         (typeAttr, fg yellow),
+        (booleanAttr, fg red),
         (unitAttr, fg green),
         (numeratorAttr, fg magenta),
         (denominatorAttr, fg blue),
@@ -249,46 +250,47 @@ drawNewHabitState nhs@NewHabitState {..} =
                   [ str "Unit: ",
                     withAttr unitAttr $ textWithSelection SelectUnit newHabitStateUnit
                   ],
-              borderWithLabel (str "[ Goal ]")
-                $ padLeftRight 1
-                $ vBox
-                  [ selIf SelectGoalType $
-                      hBox
-                        [ str "Type: ",
-                          withAttr typeAttr $ txt $ renderHabitType newHabitStateGoalType
-                        ],
-                    selIf SelectGoalNumerator $
-                      hBox
-                        [ str "Numerator: ",
-                          withAttr numeratorAttr $ textWithSelection SelectGoalNumerator newHabitStateGoalNumerator
-                        ],
-                    selIf SelectGoalDenominator $
-                      hBox
-                        [ str "Denominator: ",
-                          withAttr denominatorAttr $ textWithSelection SelectGoalDenominator newHabitStateGoalDenominator
-                        ],
-                    padTop (Pad 1) $ markup
-                      $ mconcat
-                      $ case newHabitStateGoalType of
-                        PositiveHabit ->
-                          [ "I want to achieve ",
-                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                            " ",
-                            rebuildTextCursor newHabitStateUnit @? unitAttr,
-                            " every ",
-                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                            " days."
-                          ]
-                        NegativeHabit ->
-                          [ "I want to have at most ",
-                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                            " ",
-                            rebuildTextCursor newHabitStateUnit @? unitAttr,
-                            " every ",
-                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                            " days."
-                          ]
+              selIf SelectGoalType $
+                hBox
+                  [ str "Type: ",
+                    withAttr typeAttr $ txt $ renderHabitType newHabitStateGoalType
                   ],
+              selIf SelectGoalBoolean $
+                hBox
+                  [ str "Boolean: ",
+                    withAttr booleanAttr $ txt $ if newHabitStateGoalBoolean then "Yes" else "No"
+                  ],
+              selIf SelectGoalNumerator $
+                hBox
+                  [ str "Numerator: ",
+                    withAttr numeratorAttr $ textWithSelection SelectGoalNumerator newHabitStateGoalNumerator
+                  ],
+              selIf SelectGoalDenominator $
+                hBox
+                  [ str "Denominator: ",
+                    withAttr denominatorAttr $ textWithSelection SelectGoalDenominator newHabitStateGoalDenominator
+                  ],
+              padTop (Pad 1) $ markup
+                $ mconcat
+                $ case newHabitStateGoalType of
+                  PositiveHabit ->
+                    [ "I want to achieve ",
+                      rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
+                      " ",
+                      rebuildTextCursor newHabitStateUnit @? unitAttr,
+                      " every ",
+                      rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
+                      " days."
+                    ]
+                  NegativeHabit ->
+                    [ "I want to have at most ",
+                      rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
+                      " ",
+                      rebuildTextCursor newHabitStateUnit @? unitAttr,
+                      " every ",
+                      rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
+                      " days."
+                    ],
               case newHabitStateCompleteHabit undefined nhs of
                 Left t -> withDefAttr errorAttr $ borderWithLabel (str "[ Error ]") $ padLeftRight 1 $ txt t
                 Right _ -> emptyWidget,
@@ -308,6 +310,9 @@ descriptionAttr = "description"
 
 typeAttr :: AttrName
 typeAttr = "type"
+
+booleanAttr :: AttrName
+booleanAttr = "boolean"
 
 numeratorAttr :: AttrName
 numeratorAttr = "numerator"

@@ -74,6 +74,7 @@ data NewHabitStateSelection
   | SelectDescription
   | SelectUnit
   | SelectGoalType
+  | SelectGoalBoolean
   | SelectGoalNumerator
   | SelectGoalDenominator
   | SelectCancelButton
