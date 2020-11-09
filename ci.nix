@@ -6,7 +6,6 @@ let
     );
 in
 pkgs.habitsciplinePackages // {
-  nixos-module-test = import ./nix/nixos-module-test.nix { inherit pkgs; };
   pre-commit-check = nix-pre-commit-hooks.run {
     src = ./.;
     hooks = {
