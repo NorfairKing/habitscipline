@@ -42,7 +42,9 @@ buildAttrMap =
         (headerAttr, withStyle defAttr underline),
         (goodAttr, fg green),
         (todayAttr, fg magenta),
-        (selectedBothAttr, bg white)
+        (selectedBothAttr, bg white),
+        (goalMetAttr, withStyle defAttr underline),
+        (goalNotMetAttr, defAttr)
       ]
 
 drawTui :: State -> [Widget ResourceName]
@@ -94,7 +96,12 @@ drawHistoryState HistoryState {..} =
                       Loading -> False
                       Loaded mnec -> (nonEmptyCursorCurrent <$> mnec) == Just (habitUuid h)
                   amountCell h em d =
-                    let showAmount :: Word -> String
+                    let met = entryMapGoalMet (habitType h) (habitBoolean h) (habitGoal h) d em
+                        withMetAttr = case met of
+                          Nothing -> id
+                          Just True -> withDefAttr goalMetAttr
+                          Just False -> withDefAttr goalNotMetAttr
+                        showAmount :: Word -> String
                         showAmount w =
                           if habitBoolean h
                             then case habitType h of
@@ -134,7 +141,7 @@ drawHistoryState HistoryState {..} =
                           PositiveHabit -> a > 0
                           NegativeHabit -> a <= 0
                         goodModifier a = if isGood a then withAttr goodAttr else id
-                     in case mAmount of
+                     in withMetAttr $ case mAmount of
                           Nothing -> amountWidget Nothing
                           Just a -> goodModifier a $ amountWidget $ Just a
                   habitRow h em = map (amountCell h em) days ++ [padLeft (Pad 1) $ withAttr nameAttr $ txt (habitName h)]
@@ -332,3 +339,9 @@ todayAttr = "today"
 
 selectedBothAttr :: AttrName
 selectedBothAttr = "selected-both"
+
+goalMetAttr :: AttrName
+goalMetAttr = "goal-met"
+
+goalNotMetAttr :: AttrName
+goalNotMetAttr = "goal-not-met"
