@@ -15,7 +15,7 @@ jobs:
     - uses: cachix/install-nix-action@v11
       with:
         extra_nix_config: |
-          system-features = kvm, nixos-test
+          system-features = kvm nixos-test benchmark big-parallel
     - uses: cachix/cachix-action@v7
       with:
         name: habit
