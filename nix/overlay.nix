@@ -51,6 +51,13 @@ with final.haskell.lib;
         "habitscipline-data-gen" = habitsciplinePkg "habitscipline-data-gen";
         "habitscipline-tui" = habitsciplinePkgWithComp "habit" "habitscipline-tui";
       };
+
+  habitsciplineRelease =
+    final.symlinkJoin {
+      name = "sparep-release";
+      paths = final.lib.attrValues final.habitsciplinePackages;
+    };
+
   haskellPackages =
     previous.haskellPackages.override (
       old:
