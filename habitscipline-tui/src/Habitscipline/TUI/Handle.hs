@@ -101,7 +101,12 @@ handleHabitListState chan s e =
             EvKey (KChar 'q') [] -> halt $ StateHabitList s
             EvKey (KChar 'r') [] -> toHabitList chan
             EvKey (KChar 'h') [] -> toHistory chan
-            EvKey (KChar 'n') [] -> toNewHabit
+            EvKey (KChar 'n') [] -> toNewHabit Nothing
+            EvKey (KChar 'e') [] -> case habitListStateHabits s of
+              Loading -> continue $ StateHabitList s
+              Loaded mnec -> case mnec of
+                Nothing -> continue $ StateHabitList s
+                Just nec -> toNewHabit $ Just $ nonEmptyCursorCurrent nec
             EvKey KDown [] -> cursorDo nonEmptyCursorSelectNext
             EvKey (KChar 'j') [] -> cursorDo nonEmptyCursorSelectNext
             EvKey KUp [] -> cursorDo nonEmptyCursorSelectPrev
@@ -177,7 +182,7 @@ handleNewHabitState chan s e =
             case newHabitStateCompleteHabit uuid s of
               Left _ -> continue $ StateNewHabit s
               Right h -> do
-                liftIO $ writeBChan chan $ RequestCreateHabit h
+                liftIO $ writeBChan chan $ RequestPutHabit h
                 toHabitList chan
           EvKey KBackTab [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectCancelButton}
           EvKey (KChar '\t') [] -> continue $ StateNewHabit $ s {newHabitStateSelection = SelectName}
@@ -220,17 +225,21 @@ toHabitList chan = do
         { habitListStateHabits = Loading
         }
 
-toNewHabit :: EventM n (Next State)
-toNewHabit =
-  continue $
-    StateNewHabit
-      NewHabitState
-        { newHabitStateName = emptyTextCursor,
-          newHabitStateDescription = emptyTextCursor,
-          newHabitStateUnit = emptyTextCursor,
-          newHabitStateGoalType = PositiveHabit,
-          newHabitStateGoalBoolean = True,
-          newHabitStateGoalNumerator = emptyTextCursor,
-          newHabitStateGoalDenominator = emptyTextCursor,
-          newHabitStateSelection = SelectName
-        }
+toNewHabit :: Maybe Habit -> EventM n (Next State)
+toNewHabit mh =
+  continue
+    $ StateNewHabit
+    $ case mh of
+      Just h -> makeChangeHabitState h
+      Nothing ->
+        NewHabitState
+          { newHabitStateHabit = Nothing,
+            newHabitStateName = emptyTextCursor,
+            newHabitStateDescription = emptyTextCursor,
+            newHabitStateUnit = emptyTextCursor,
+            newHabitStateGoalType = PositiveHabit,
+            newHabitStateGoalBoolean = True,
+            newHabitStateGoalNumerator = emptyTextCursor,
+            newHabitStateGoalDenominator = emptyTextCursor,
+            newHabitStateSelection = SelectName
+          }

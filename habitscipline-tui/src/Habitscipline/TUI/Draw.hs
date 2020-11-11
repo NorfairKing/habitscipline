@@ -207,7 +207,12 @@ drawHabitListState HabitListState {..} =
                   padAll 1 $ drawHabitDescription $ nonEmptyCursorCurrent cursor
                 ],
         hBorder,
-        hCenterLayer $ str "Press 'n' to create a new habit"
+        hCenterLayer $
+          vBox
+            [ str "Press 'n' to create a new habit",
+              str "Press 'e' to edit a habit",
+              str "Press 'h' to go to the history overview"
+            ]
       ]
   ]
 
@@ -314,7 +319,9 @@ drawNewHabitState nhs@NewHabitState {..} =
                 Right _ -> emptyWidget,
               hBox
                 [ selIf SelectCancelButton $ border $ padLeftRight 1 $ withAttr cancelButtonAttr $ str "Cancel",
-                  selIf SelectCreateButton $ border $ padLeftRight 1 $ withAttr createButtonAttr $ str "Create"
+                  selIf SelectCreateButton $ border $ padLeftRight 1 $ withAttr createButtonAttr $ str $ case newHabitStateHabit of
+                    Nothing -> "Create"
+                    Just _ -> "Save"
                 ],
               str "Tab: Next, Shift-Tab: Previous"
             ]

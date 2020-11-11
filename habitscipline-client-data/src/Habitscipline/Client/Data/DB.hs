@@ -39,7 +39,10 @@ ClientHabit sql=habit
     goalNumerator Word sql=numerator
     goalDenominator Word sql=denominator
 
+    UniqueClientHabitUuid uuid
+
     deriving Show Eq
+
 
 ClientEntry sql=entry
     serverId ServerEntryId Maybe sql=server_id

@@ -21,7 +21,7 @@ data Request
   = RequestHistory
   | RequestHabits
   | RequestSetEntry !Entry
-  | RequestCreateHabit !Habit
+  | RequestPutHabit !Habit
 
 data Response
   = ResponseHistory !(Map Habit EntryMap)

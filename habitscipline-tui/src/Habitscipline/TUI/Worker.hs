@@ -43,8 +43,21 @@ tuiWorker reqChan respChan = forever $ do
             ]
       maps <- runDB calculateHistory
       pure $ Just $ ResponseHistory maps
-    RequestCreateHabit h -> do
-      runDB $ insert_ $ makeUnsyncedClientHabit h
+    RequestPutHabit h@Habit {..} -> do
+      runDB $
+        upsertBy
+          (UniqueClientHabitUuid habitUuid)
+          (makeUnsyncedClientHabit h)
+          ( let Goal {..} = habitGoal
+             in [ ClientHabitName =. habitName,
+                  ClientHabitDescription =. habitDescription,
+                  ClientHabitUnit =. habitUnit,
+                  ClientHabitGoalType =. goalType,
+                  ClientHabitGoalBoolean =. goalBoolean,
+                  ClientHabitGoalNumerator =. goalNumerator,
+                  ClientHabitGoalDenominator =. goalDenominator
+                ]
+          )
       pure Nothing
   forM mResp $ \resp -> liftIO $ writeBChan respChan resp
 

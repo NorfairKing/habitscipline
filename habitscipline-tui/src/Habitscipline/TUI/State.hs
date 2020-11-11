@@ -6,6 +6,7 @@ module Habitscipline.TUI.State where
 import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Data.Map (Map)
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time
@@ -37,7 +38,8 @@ data HabitListState
 
 data NewHabitState
   = NewHabitState
-      { newHabitStateName :: TextCursor,
+      { newHabitStateHabit :: Maybe HabitUuid, -- Nothing means new, Just means changing a habit
+        newHabitStateName :: TextCursor,
         newHabitStateDescription :: TextCursor,
         newHabitStateUnit :: TextCursor,
         newHabitStateGoalType :: HabitType,
@@ -48,9 +50,24 @@ data NewHabitState
       }
   deriving (Show)
 
+makeChangeHabitState :: Habit -> NewHabitState
+makeChangeHabitState Habit {..} =
+  let newHabitStateHabit = Just habitUuid
+      newHabitStateName = fromMaybe emptyTextCursor $ makeTextCursor habitName
+      newHabitStateDescription = fromMaybe emptyTextCursor $ habitDescription >>= makeTextCursor
+      newHabitStateUnit = fromMaybe emptyTextCursor $ makeTextCursor habitUnit
+      Goal {..} = habitGoal
+      newHabitStateGoalType = goalType
+      newHabitStateGoalBoolean = goalBoolean
+      newHabitStateGoalNumerator = fromMaybe emptyTextCursor $ makeTextCursor $ T.pack $ show goalNumerator
+      newHabitStateGoalDenominator = fromMaybe emptyTextCursor $ makeTextCursor $ T.pack $ show goalDenominator
+      newHabitStateSelection = SelectName
+   in NewHabitState {..}
+
 newHabitStateCompleteHabit :: HabitUuid -> NewHabitState -> Either Text Habit
-newHabitStateCompleteHabit habitUuid NewHabitState {..} = do
-  let habitName = rebuildTextCursor newHabitStateName
+newHabitStateCompleteHabit newUuid NewHabitState {..} = do
+  let habitUuid = fromMaybe newUuid newHabitStateHabit
+      habitName = rebuildTextCursor newHabitStateName
       habitDescription =
         let t = rebuildTextCursor newHabitStateDescription
          in if T.null t then Nothing else Just t
