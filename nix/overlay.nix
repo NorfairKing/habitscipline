@@ -78,31 +78,10 @@ with final.haskell.lib;
                     dontCheck (
                       self.callCabal2nix "envparse" envparseRepo {}
                     );
-                  cursorBrickRepo =
-                    final.fetchFromGitHub {
-                      owner = "NorfairKing";
-                      repo = "cursor-brick";
-                      rev = "a7b47b03c8c5525234aaccc0c372e49a80134b9d";
-                      sha256 = "sha256:1wk2sixf1ld48j6a14zgfadg41si6rl8gwmwdlkn0cqjiw9n7f4p";
-                    };
-                  cursorBrickPkg = self.callCabal2nix "cursor-brick" (cursorBrickRepo + "/cursor-brick") {};
-                  typedUuidRepo =
-                    final.fetchFromGitHub {
-                      owner = "NorfairKing";
-                      repo = "typed-uuid";
-                      rev = "02bcaa59392cee08fa1b26847d099e69d75fcf15";
-                      sha256 = "sha256:169vvch3wy8gcxnv2ifqdly3vjs8jh5xyxgg8a2znzf7csfb4m14";
-                    };
-                  typedUuidPkg = name: self.callCabal2nix name (typedUuidRepo + "/${name}") {};
-                  typedUuidPkgs = final.lib.genAttrs [
-                    "typed-uuid"
-                    "genvalidity-typed-uuid"
-                  ] typedUuidPkg;
 
                 in
-                  final.habitsciplinePackages // typedUuidPkgs // {
+                  final.habitsciplinePackages // {
                     envparse = envparsePkg;
-                    cursor-brick = cursorBrickPkg;
                   }
             );
         }

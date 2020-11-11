@@ -14,7 +14,7 @@ packages:
 - habitscipline-tui
 extra-deps:
 - github: NorfairKing/typed-uuid
-  commit: 02bcaa59392cee08fa1b26847d099e69d75fcf15
+  commit: ec82b82a545d06094ac355bd65a03f25f86c0a48
   subdirs:
   - typed-uuid
   - genvalidity-typed-uuid
@@ -31,7 +31,7 @@ extra-deps:
   - appendful-persistent
   - genvalidity-appendful
 - github: NorfairKing/mergeful
-  commit: 539ea04691309fb3f74461344ebdf389dc535a55
+  commit: b520f251010e80748c4eea1ba7216f2594c4f760
   subdirs:
   - mergeful
   - mergeful-persistent
@@ -43,7 +43,7 @@ extra-deps:
   subdirs: 
     - cursor-brick
 - github: NorfairKing/cursor
-  commit: f0a17f78d619c34280e326ca6968cda4438c6d75
+  commit: 9a9972bda3ea8f11579ebd63163d0a72c6a751a9
   subdirs: 
     - cursor
     - cursor-gen

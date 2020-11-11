@@ -5,9 +5,17 @@ let
     import (
       pkgs.fetchFromGitHub (import ./validity-version.nix) + "/nix/overlay.nix"
     );
+  typed-uuid-overlay =
+    import (
+      pkgs.fetchFromGitHub (import ./typed-uuid-version.nix) + "/nix/overlay.nix"
+    );
   cursor-overlay =
     import (
       pkgs.fetchFromGitHub (import ./cursor-version.nix) + "/nix/overlay.nix"
+    );
+  cursor-brick-overlay =
+    import (
+      pkgs.fetchFromGitHub (import ./cursor-brick-version.nix) + "/nix/overlay.nix"
     );
   yamlparse-applicative-overlay =
     import (
@@ -26,7 +34,9 @@ let
       overlays =
         [
           validity-overlay
+          typed-uuid-overlay
           cursor-overlay
+          cursor-brick-overlay
           yamlparse-applicative-overlay
           appendful-overlay
           mergeful-overlay

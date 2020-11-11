@@ -44,7 +44,7 @@ tuiWorker reqChan respChan = forever $ do
       maps <- runDB calculateHistory
       pure $ Just $ ResponseHistory maps
     RequestPutHabit h@Habit {..} -> do
-      runDB $
+      void $ runDB $
         upsertBy
           (UniqueClientHabitUuid habitUuid)
           (makeUnsyncedClientHabit h)
