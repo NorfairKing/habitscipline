@@ -49,7 +49,7 @@ with final.haskell.lib;
         "habitscipline-client-data" = habitsciplinePkg "habitscipline-client-data";
         "habitscipline-data" = habitsciplinePkg "habitscipline-data";
         "habitscipline-data-gen" = habitsciplinePkg "habitscipline-data-gen";
-        "habitscipline-tui" = habitsciplinePkgWithComp "habit" "habitscipline-tui";
+        "habitscipline-tui" = habitsciplinePkgWithComp "habitscipline" "habitscipline-tui";
       };
 
   habitsciplineRelease =

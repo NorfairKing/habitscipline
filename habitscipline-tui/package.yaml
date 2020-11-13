@@ -34,7 +34,7 @@ library:
   - yamlparse-applicative
 
 executables:
-  habit:
+  habitscipline:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
