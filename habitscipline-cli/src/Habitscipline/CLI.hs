@@ -42,3 +42,4 @@ dispatch = \case
   DispatchRegister -> Commands.register
   DispatchLogin -> Commands.login
   DispatchSync -> Commands.sync
+  DispatchEntry es -> Commands.entry es

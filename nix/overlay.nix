@@ -44,12 +44,12 @@ with final.haskell.lib;
         "habitscipline-api-server-data" = habitsciplinePkg "habitscipline-api-server-data";
         "habitscipline-api-server-data-gen" = habitsciplinePkg "habitscipline-api-server-data-gen";
         "habitscipline-api-server-gen" = habitsciplinePkg "habitscipline-api-server-gen";
-        "habitscipline-cli" = habitsciplinePkgWithComp "habitscipline" "habitscipline-cli";
+        "habitscipline-cli" = habitsciplinePkgWithOwnComp "habitscipline-cli";
         "habitscipline-client" = habitsciplinePkg "habitscipline-client";
         "habitscipline-client-data" = habitsciplinePkg "habitscipline-client-data";
         "habitscipline-data" = habitsciplinePkg "habitscipline-data";
         "habitscipline-data-gen" = habitsciplinePkg "habitscipline-data-gen";
-        "habitscipline-tui" = habitsciplinePkgWithComp "habitscipline" "habitscipline-tui";
+        "habitscipline-tui" = habitsciplinePkgWithOwnComp "habitscipline-tui";
       };
 
   habitsciplineRelease =

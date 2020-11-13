@@ -34,7 +34,7 @@ library:
   - yamlparse-applicative
 
 executables:
-  habitscipline:
+  habitscipline-tui:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

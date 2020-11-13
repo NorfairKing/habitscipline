@@ -9,6 +9,7 @@ module Habitscipline.CLI.OptParse
     Instructions (..),
     Dispatch (..),
     Settings (..),
+    EntrySettings (..),
     getDefaultClientDatabase,
     getDefaultDataDir,
     getDefaultConfigFile,
@@ -21,6 +22,7 @@ import Control.Monad.Logger
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time
 import Data.Yaml
 import qualified Env
 import GHC.Generics (Generic)
@@ -34,7 +36,7 @@ import YamlParse.Applicative as YamlParse
 
 data Instructions
   = Instructions Dispatch Settings
-  deriving (Show, Eq, Generic)
+  deriving (Show, Generic)
 
 getInstructions :: IO Instructions
 getInstructions = do
@@ -52,14 +54,23 @@ data Settings
         settingDbFile :: Path Abs File,
         settingLogLevel :: LogLevel
       }
-  deriving (Show, Eq, Generic)
+  deriving (Show, Generic)
 
 -- | A sum type for the commands and their specific settings
 data Dispatch
   = DispatchRegister
   | DispatchLogin
   | DispatchSync
-  deriving (Show, Eq, Generic)
+  | DispatchEntry EntrySettings
+  deriving (Show, Generic)
+
+data EntrySettings
+  = EntrySettings
+      { entrySettingHabit :: Text,
+        entrySettingAmount :: Word,
+        entrySettingDay :: Day
+      }
+  deriving (Show, Generic)
 
 combineToInstructions :: Arguments -> Environment -> Maybe Configuration -> IO Instructions
 combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
@@ -81,6 +92,13 @@ combineToInstructions (Arguments cmd Flags {..}) Environment {..} mConf = do
       CommandRegister -> pure DispatchRegister
       CommandLogin -> pure DispatchLogin
       CommandSync -> pure DispatchSync
+      CommandEntry EntryFlags {..} -> do
+        let entrySettingHabit = entryFlagHabit
+        let entrySettingAmount = entryFlagAmount
+        entrySettingDay <- case entryFlagDay of
+          Nothing -> utctDay <$> getCurrentTime
+          Just d -> pure d
+        pure $ DispatchEntry EntrySettings {..}
   pure $ Instructions disp sets
   where
     mc :: (Configuration -> Maybe a) -> Maybe a
@@ -171,7 +189,7 @@ environmentParser =
 -- | The combination of a command with its specific flags and the flags for all commands
 data Arguments
   = Arguments Command Flags
-  deriving (Show, Eq, Generic)
+  deriving (Show, Generic)
 
 -- | Get the command-line arguments
 getArguments :: IO Arguments
@@ -210,7 +228,8 @@ data Command
   = CommandRegister
   | CommandLogin
   | CommandSync
-  deriving (Show, Eq, Generic)
+  | CommandEntry EntryFlags
+  deriving (Show, Generic)
 
 parseCommand :: OptParse.Parser Command
 parseCommand =
@@ -218,7 +237,8 @@ parseCommand =
     mconcat
       [ OptParse.command "register" parseCommandRegister,
         OptParse.command "login" parseCommandLogin,
-        OptParse.command "sync" parseCommandSync
+        OptParse.command "sync" parseCommandSync,
+        OptParse.command "entry" parseCommandEntry
       ]
 
 parseCommandRegister :: OptParse.ParserInfo Command
@@ -238,6 +258,26 @@ parseCommandSync = OptParse.info parser modifier
   where
     modifier = OptParse.fullDesc <> OptParse.progDesc "Synchronise the habit database"
     parser = pure CommandSync
+
+data EntryFlags
+  = EntryFlags
+      { entryFlagHabit :: Text,
+        entryFlagAmount :: Word,
+        entryFlagDay :: Maybe Day
+      }
+  deriving (Show)
+
+parseCommandEntry :: OptParse.ParserInfo Command
+parseCommandEntry = OptParse.info parser modifier
+  where
+    modifier = OptParse.fullDesc <> OptParse.progDesc "Set an entry"
+    parser =
+      CommandEntry
+        <$> ( EntryFlags
+                <$> strArgument (mconcat [metavar "HABIT", help "The habit: UUID or name"])
+                <*> argument auto (mconcat [metavar "AMOUNT", help "The amount for the entry"])
+                <*> optional (option auto (mconcat [metavar "DAY", long "day", help "The day to set the entry for"]))
+            )
 
 -- | The flags that are common across commands.
 data Flags

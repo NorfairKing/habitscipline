@@ -12,13 +12,18 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
-  - mergeful
-  - mergeful-persistent
   - cookie
   - envparse
   - filelock
+  - habitscipline-api
+  - habitscipline-api-server-data
+  - habitscipline-client
+  - habitscipline-client-data
+  - habitscipline-data
   - http-client
   - http-client-tls
+  - mergeful
+  - mergeful-persistent
   - monad-logger
   - mtl
   - optparse-applicative
@@ -29,17 +34,14 @@ library:
   - servant
   - servant-auth-client
   - servant-client
-  - habitscipline-api
-  - habitscipline-api-server-data
-  - habitscipline-client
-  - habitscipline-client-data
-  - habitscipline-data
   - text
+  - time
+  - typed-uuid
   - yaml
   - yamlparse-applicative
 
 executables:
-  habitscipline:
+  habitscipline-cli:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

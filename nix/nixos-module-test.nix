@@ -60,9 +60,9 @@ pkgs.nixosTest (
 
       machine.succeed(su("testuser", "cat ~/.config/habitscipline/config.yaml"))
 
-      machine.succeed(su("testuser", "habitscipline register"))
-      machine.succeed(su("testuser", "habitscipline login"))
-      machine.succeed(su("testuser", "habitscipline sync"))
+      machine.succeed(su("testuser", "habitscipline-cli register"))
+      machine.succeed(su("testuser", "habitscipline-cli login"))
+      machine.succeed(su("testuser", "habitscipline-cli sync"))
     '';
   }
 )
