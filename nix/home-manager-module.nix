@@ -84,7 +84,7 @@ password: "${cfg.sync.password}"
               ExecStart =
                 "${pkgs.writeShellScript "sync-habitscipline-service-ExecStart"
                   ''
-                    exec ${habitsciplinePkgs.habitscipline-cli}/bin/habitscipline sync
+                    exec ${habitsciplinePkgs.habitscipline-cli}/bin/habitscipline-cli sync
                   ''}";
               Type = "oneshot";
             };
