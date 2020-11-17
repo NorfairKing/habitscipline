@@ -54,7 +54,7 @@ with final.haskell.lib;
 
   habitsciplineRelease =
     final.symlinkJoin {
-      name = "sparep-release";
+      name = "habitscipline-release";
       paths = final.lib.attrValues final.habitsciplinePackages;
     };
 

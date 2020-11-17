@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v11
-    - uses: cachix/cachix-action@v7
+    - uses: cachix/install-nix-action@v12
+    - uses: cachix/cachix-action@v8
       with:
         name: habit
         extraPullNames: validity, mergeful, cursor, yamlparse
@@ -25,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: cachix/install-nix-action@v11
-    - uses: cachix/cachix-action@v7
+    - uses: cachix/install-nix-action@v12
+    - uses: cachix/cachix-action@v8
       with:
         name: habit
         extraPullNames: validity, mergeful, cursor, yamlparse
