@@ -112,12 +112,12 @@ habitRow selectedDay maxDay habitCursor amountCursor h em =
                   then case goalType of
                     PositiveHabit ->
                       if w > 0
-                        then " ✓"
+                        then " ✔️"
                         else "  "
                     NegativeHabit ->
                       if w > 0
-                        then " ✗"
-                        else " ✓"
+                        then " ✖️"
+                        else " ✔️"
                   else printf "%2d" w
             amountWidget :: Maybe Word -> Widget ResourceName
             amountWidget mw =
