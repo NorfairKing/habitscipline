@@ -6,8 +6,8 @@
 module Habitscipline.Data.Entry where
 
 import Data.Aeson
-import qualified Data.Map as M
 import Data.Map (Map)
+import qualified Data.Map as M
 import Data.Ord
 import Data.Time
 import Data.Validity
@@ -18,12 +18,11 @@ import GHC.Generics (Generic)
 import Habitscipline.Data.Habit
 import Safe
 
-data Entry
-  = Entry
-      { entryHabit :: HabitUuid,
-        entryDay :: !Day,
-        entryAmount :: !Word
-      }
+data Entry = Entry
+  { entryHabit :: HabitUuid,
+    entryDay :: !Day,
+    entryAmount :: !Word
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Entry
@@ -43,10 +42,9 @@ instance ToJSON Entry where
         "amount" .= entryAmount
       ]
 
-newtype EntryMap
-  = EntryMap
-      { unEntryMap :: Map Day Word
-      }
+newtype EntryMap = EntryMap
+  { unEntryMap :: Map Day Word
+  }
   deriving (Show, Eq, Ord, Generic, FromJSON, ToJSON)
 
 instance Validity EntryMap
@@ -69,11 +67,10 @@ entryMapLookup (EntryMap m) d = case M.lookup d m of
 -- | A Streak is a tuple of days, a begin and an end, both inclusive.
 --
 -- A streak is a range of days where the habit goal was met every day.
-data Streak
-  = Streak
-      { streakBegin :: !Day,
-        streakEnd :: !Day
-      }
+data Streak = Streak
+  { streakBegin :: !Day,
+    streakEnd :: !Day
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Streak where
@@ -128,7 +125,7 @@ entryMapRangeSum goalBoolean (EntryMap em') beginDay endDay =
 -- O(n) in the number of entries
 entryMapGoalMet :: Goal -> Day -> EntryMap -> Maybe Bool -- Nothing means not enough data
 entryMapGoalMet Goal {..} endDay em =
-  let beginDay = addDays (- fromIntegral (goalDenominator - 1)) endDay
+  let beginDay = addDays (-fromIntegral (goalDenominator - 1)) endDay
    in case entryMapRangeSum goalBoolean em beginDay endDay of
         NoSum -> Nothing
         PartialSumBegin w -> case goalType of
@@ -160,7 +157,7 @@ entryMapGoalMet Goal {..} endDay em =
 -- This is currently linear in the number of days between the first and the last entry.
 -- FIXME: I _think_ that can be sped up but it's not as simple as it seems.
 entryMapStreaks :: Goal -> EntryMap -> Day -> [Streak]
-entryMapStreaks g@Goal {..} em@(EntryMap m) endDay =
+entryMapStreaks g em@(EntryMap m) endDay =
   case M.lookupMin m of
     Nothing -> [] -- No entries, no streaks
     Just (beginDay, _) ->

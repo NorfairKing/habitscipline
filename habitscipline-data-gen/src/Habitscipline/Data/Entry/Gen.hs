@@ -29,11 +29,12 @@ instance GenValid EntryMap where
     interval <- upTo (s * 2)
     let endDay = addDays (fromIntegral interval) beginDay
     let days = [beginDay .. endDay]
-    unEntryMap <- fmap (M.fromList . catMaybes) $ forM days $ \d ->
-      oneof
-        [ pure Nothing,
-          do
-            w <- choose (0, s)
-            pure $ Just (d, fromIntegral w)
-        ]
+    unEntryMap <- fmap (M.fromList . catMaybes) $
+      forM days $ \d ->
+        oneof
+          [ pure Nothing,
+            do
+              w <- choose (0, s)
+              pure $ Just (d, fromIntegral w)
+          ]
     pure EntryMap {..}

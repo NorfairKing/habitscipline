@@ -56,7 +56,7 @@ in
     };
   config =
     let
-      habitsciplinePkgs = (import ./pkgs.nix).habitsciplinePackages;
+      habitsciplinePkgs = (import ./pkgs.nix { }).habitsciplinePackages;
       configContents = cfg: ''
         
 
@@ -133,16 +133,16 @@ password: "${cfg.sync.password}"
 
 
     in
-      mkIf cfg.enable {
-        xdg = {
-          configFile."habitscipline/config.yaml".text = habitsciplineConfigContents;
-        };
-        systemd.user =
-          {
-            startServices = true;
-            services = services;
-            timers = timers;
-          };
-        home.packages = packages;
+    mkIf cfg.enable {
+      xdg = {
+        configFile."habitscipline/config.yaml".text = habitsciplineConfigContents;
       };
+      systemd.user =
+        {
+          startServices = true;
+          services = services;
+          timers = timers;
+        };
+      home.packages = packages;
+    };
 }

@@ -37,30 +37,34 @@ handleHistoryState chan s e =
               Nothing -> continue $ StateHistory s
               Just cursor ->
                 let cursor' = fromMaybe cursor $ func cursor
-                 in continue $ StateHistory $
-                      s
-                        { historyStateHabitCursor = Loaded $ Just cursor',
-                          historyStateAmountCursor = emptyTextCursor
-                        }
+                 in continue $
+                      StateHistory $
+                        s
+                          { historyStateHabitCursor = Loaded $ Just cursor',
+                            historyStateAmountCursor = emptyTextCursor
+                          }
           dayDo func =
             let d = min (historyStateToday s) $ func $ historyStateDay s
-             in continue $ StateHistory $
-                  s
-                    { historyStateDay = d,
-                      historyStateMaxDay = min (addDays daysShown d) $ max d (historyStateMaxDay s)
-                    }
+             in continue $
+                  StateHistory $
+                    s
+                      { historyStateDay = d,
+                        historyStateMaxDay = min (addDays daysShown d) $ max d (historyStateMaxDay s)
+                      }
        in case vtye of
             EvKey KEsc [] -> halt $ StateHistory s
             EvKey KEnter [] ->
               case historyStateHabitCursor s of
                 Loaded (Just nec) -> case readMaybe $ T.unpack $ rebuildTextCursor $ historyStateAmountCursor s of
                   Just amount -> do
-                    liftIO $ writeBChan chan $ RequestSetEntry $
-                      Entry
-                        { entryHabit = nonEmptyCursorCurrent nec,
-                          entryDay = historyStateDay s,
-                          entryAmount = amount
-                        }
+                    liftIO $
+                      writeBChan chan $
+                        RequestSetEntry $
+                          Entry
+                            { entryHabit = nonEmptyCursorCurrent nec,
+                              entryDay = historyStateDay s,
+                              entryAmount = amount
+                            }
                     continue $ StateHistory $ s {historyStateAmountCursor = emptyTextCursor}
                   Nothing -> continue $ StateHistory s
                 _ -> continue $ StateHistory s
@@ -75,13 +79,14 @@ handleHistoryState chan s e =
             _ -> fmap (\tc -> StateHistory $ s {historyStateAmountCursor = tc}) <$> handleTC (historyStateAmountCursor s) e
     AppEvent resp -> case resp of
       ResponseHistory hms ->
-        continue $ StateHistory $
-          s
-            { historyStateHabitMaps = Loaded hms,
-              historyStateHabitCursor = case historyStateHabitCursor s of
-                Loaded c -> Loaded c -- Don't reload the cursor if it was already loaded
-                Loading -> Loaded $ makeNonEmptyCursor . fmap habitUuid <$> NE.nonEmpty (M.keys hms)
-            }
+        continue $
+          StateHistory $
+            s
+              { historyStateHabitMaps = Loaded hms,
+                historyStateHabitCursor = case historyStateHabitCursor s of
+                  Loaded c -> Loaded c -- Don't reload the cursor if it was already loaded
+                  Loading -> Loaded $ makeNonEmptyCursor . fmap habitUuid <$> NE.nonEmpty (M.keys hms)
+              }
       _ -> continue $ StateHistory s
     _ -> continue $ StateHistory s
 
@@ -206,15 +211,16 @@ toHistory :: BChan Request -> EventM n (Next State)
 toHistory chan = do
   liftIO $ writeBChan chan RequestHistory
   today <- liftIO $ utctDay <$> getCurrentTime
-  continue $ StateHistory $
-    HistoryState
-      { historyStateHabitMaps = Loading,
-        historyStateHabitCursor = Loading,
-        historyStateAmountCursor = emptyTextCursor,
-        historyStateToday = today,
-        historyStateDay = today,
-        historyStateMaxDay = today
-      }
+  continue $
+    StateHistory $
+      HistoryState
+        { historyStateHabitMaps = Loading,
+          historyStateHabitCursor = Loading,
+          historyStateAmountCursor = emptyTextCursor,
+          historyStateToday = today,
+          historyStateDay = today,
+          historyStateMaxDay = today
+        }
 
 toHabitList :: BChan Request -> EventM n (Next State)
 toHabitList chan = do
@@ -227,19 +233,19 @@ toHabitList chan = do
 
 toNewHabit :: Maybe Habit -> EventM n (Next State)
 toNewHabit mh =
-  continue
-    $ StateNewHabit
-    $ case mh of
-      Just h -> makeChangeHabitState h
-      Nothing ->
-        NewHabitState
-          { newHabitStateHabit = Nothing,
-            newHabitStateName = emptyTextCursor,
-            newHabitStateDescription = emptyTextCursor,
-            newHabitStateUnit = emptyTextCursor,
-            newHabitStateGoalType = PositiveHabit,
-            newHabitStateGoalBoolean = True,
-            newHabitStateGoalNumerator = emptyTextCursor,
-            newHabitStateGoalDenominator = emptyTextCursor,
-            newHabitStateSelection = SelectName
-          }
+  continue $
+    StateNewHabit $
+      case mh of
+        Just h -> makeChangeHabitState h
+        Nothing ->
+          NewHabitState
+            { newHabitStateHabit = Nothing,
+              newHabitStateName = emptyTextCursor,
+              newHabitStateDescription = emptyTextCursor,
+              newHabitStateUnit = emptyTextCursor,
+              newHabitStateGoalType = PositiveHabit,
+              newHabitStateGoalBoolean = True,
+              newHabitStateGoalNumerator = emptyTextCursor,
+              newHabitStateGoalDenominator = emptyTextCursor,
+              newHabitStateSelection = SelectName
+            }

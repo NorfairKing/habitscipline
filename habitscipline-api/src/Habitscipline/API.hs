@@ -17,12 +17,11 @@ habitsciplineAPI = Proxy
 
 type HabitsciplineAPI = ToServantApi HabitsciplineRoutes
 
-data HabitsciplineRoutes route
-  = HabitsciplineRoutes
-      { postRegister :: !(route :- PostRegister),
-        postLogin :: !(route :- PostLogin),
-        postSync :: !(route :- PostSync)
-      }
+data HabitsciplineRoutes route = HabitsciplineRoutes
+  { postRegister :: !(route :- PostRegister),
+    postLogin :: !(route :- PostLogin),
+    postSync :: !(route :- PostSync)
+  }
   deriving (Generic)
 
 type PostRegister =

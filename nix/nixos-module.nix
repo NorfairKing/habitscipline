@@ -4,7 +4,7 @@ with lib;
 
 let
   cfg = config.services.habitscipline."${envname}";
-  concatAttrs = attrList: fold (x: y: x // y) {} attrList;
+  concatAttrs = attrList: fold (x: y: x // y) { } attrList;
 in
 {
   options.services.habitscipline."${envname}" =
@@ -27,7 +27,7 @@ in
                   hosts =
                     mkOption {
                       type = types.listOf (types.str);
-                      default = [];
+                      default = [ ];
                       example = [ "api.habitscipline.cs-syd.eu" ];
                       description = "The host to serve api requests on";
                     };
@@ -62,7 +62,7 @@ in
     };
   config =
     let
-      habitsciplinePkgs = (import ./pkgs.nix).habitsciplinePackages;
+      habitsciplinePkgs = (import ./pkgs.nix { }).habitsciplinePackages;
       working-dir = "/www/habitscipline/${envname}/";
       # The docs server
       api-server-working-dir = working-dir + "api-server/";
@@ -104,7 +104,7 @@ in
       api-server-host =
         with cfg.api-server;
 
-        optionalAttrs (enable && hosts != []) {
+        optionalAttrs (enable && hosts != [ ]) {
           "${head hosts}" =
             {
               enableACME = true;
@@ -128,7 +128,7 @@ in
             {
               "habitscipline-api-server-local-backup-${envname}" = {
                 description = "Backup habitscipline-api-server database locally for ${envname}";
-                wantedBy = [];
+                wantedBy = [ ];
                 script =
                   ''
                     mkdir -p ${backup-dir}
@@ -160,22 +160,22 @@ in
           )
         );
     in
-      mkIf cfg.enable {
-        systemd.services =
-          concatAttrs [
-            api-server-service
-            local-backup-service
-          ];
-        systemd.timers =
-          concatAttrs [
-            local-backup-timer
-          ];
-        networking.firewall.allowedTCPPorts = builtins.concatLists [
-          (optional cfg.api-server.enable cfg.api-server.port)
+    mkIf cfg.enable {
+      systemd.services =
+        concatAttrs [
+          api-server-service
+          local-backup-service
         ];
-        services.nginx.virtualHosts =
-          concatAttrs [
-            api-server-host
-          ];
-      };
+      systemd.timers =
+        concatAttrs [
+          local-backup-timer
+        ];
+      networking.firewall.allowedTCPPorts = builtins.concatLists [
+        (optional cfg.api-server.enable cfg.api-server.port)
+      ];
+      services.nginx.virtualHosts =
+        concatAttrs [
+          api-server-host
+        ];
+    };
 }

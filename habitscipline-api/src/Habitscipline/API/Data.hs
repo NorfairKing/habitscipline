@@ -4,7 +4,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
@@ -25,11 +24,10 @@ import Habitscipline.Data
 import Servant.API.Generic
 import Servant.Auth.Server
 
-data RegistrationForm
-  = RegistrationForm
-      { registrationFormUsername :: Username,
-        registrationFormPassword :: Text
-      }
+data RegistrationForm = RegistrationForm
+  { registrationFormUsername :: Username,
+    registrationFormPassword :: Text
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity RegistrationForm where
@@ -51,11 +49,10 @@ instance FromJSON RegistrationForm where
     withObject "RegistrationForm" $ \o ->
       RegistrationForm <$> o .: "name" <*> o .: "password"
 
-data LoginForm
-  = LoginForm
-      { loginFormUsername :: Username,
-        loginFormPassword :: Text
-      }
+data LoginForm = LoginForm
+  { loginFormUsername :: Username,
+    loginFormPassword :: Text
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity LoginForm
@@ -71,10 +68,9 @@ instance ToJSON LoginForm where
         "password" .= loginFormPassword
       ]
 
-data AuthCookie
-  = AuthCookie
-      { authCookieUsername :: Username
-      }
+data AuthCookie = AuthCookie
+  { authCookieUsername :: Username
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance FromJSON AuthCookie
@@ -85,11 +81,10 @@ instance FromJWT AuthCookie
 
 instance ToJWT AuthCookie
 
-data SyncRequest
-  = SyncRequest
-      { syncRequestHabitSyncRequest :: Mergeful.SyncRequest ClientHabitId ServerHabitId Habit,
-        syncRequestEntrySyncRequest :: Mergeful.SyncRequest ClientEntryId ServerEntryId Entry
-      }
+data SyncRequest = SyncRequest
+  { syncRequestHabitSyncRequest :: Mergeful.SyncRequest ClientHabitId ServerHabitId Habit,
+    syncRequestEntrySyncRequest :: Mergeful.SyncRequest ClientEntryId ServerEntryId Entry
+  }
   deriving (Show, Eq, Generic)
 
 instance Validity SyncRequest
@@ -106,11 +101,10 @@ instance ToJSON SyncRequest where
         "entry" .= syncRequestEntrySyncRequest
       ]
 
-data SyncResponse
-  = SyncResponse
-      { syncResponseHabitSyncResponse :: Mergeful.SyncResponse ClientHabitId ServerHabitId Habit,
-        syncResponseEntrySyncResponse :: Mergeful.SyncResponse ClientEntryId ServerEntryId Entry
-      }
+data SyncResponse = SyncResponse
+  { syncResponseHabitSyncResponse :: Mergeful.SyncResponse ClientHabitId ServerHabitId Habit,
+    syncResponseEntrySyncResponse :: Mergeful.SyncResponse ClientEntryId ServerEntryId Entry
+  }
   deriving (Show, Eq, Generic)
 
 instance Validity SyncResponse

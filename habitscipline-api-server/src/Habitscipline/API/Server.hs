@@ -23,17 +23,18 @@ import Servant.Server.Generic
 habitsciplineAPIServer :: IO ()
 habitsciplineAPIServer = do
   Settings {..} <- getSettings
-  runStderrLoggingT $ withSqlitePool (T.pack (fromAbsFile settingDbFile)) 1 $ \pool -> do
-    runSqlPool (runMigration serverMigration) pool
-    liftIO $ do
-      jwk <- loadSigningKey settingSigningKeyFile
-      let serverEnv =
-            Env
-              { envConnectionPool = pool,
-                envCookieSettings = defaultCookieSettings,
-                envJWTSettings = defaultJWTSettings jwk
-              }
-      Warp.run settingPort $ habitsciplineAPIServerApp serverEnv
+  runStderrLoggingT $
+    withSqlitePool (T.pack (fromAbsFile settingDbFile)) 1 $ \pool -> do
+      runSqlPool (runMigration serverMigration) pool
+      liftIO $ do
+        jwk <- loadSigningKey settingSigningKeyFile
+        let serverEnv =
+              Env
+                { envConnectionPool = pool,
+                  envCookieSettings = defaultCookieSettings,
+                  envJWTSettings = defaultJWTSettings jwk
+                }
+        Warp.run settingPort $ habitsciplineAPIServerApp serverEnv
 
 habitsciplineAPIServerApp :: Env -> Wai.Application
 habitsciplineAPIServerApp env =

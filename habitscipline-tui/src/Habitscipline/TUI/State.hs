@@ -19,35 +19,32 @@ data State
   | StateNewHabit NewHabitState
   deriving (Show)
 
-data HistoryState
-  = HistoryState
-      { historyStateHabitMaps :: !(Load (Map Habit EntryMap)),
-        historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor HabitUuid))),
-        historyStateAmountCursor :: !TextCursor,
-        historyStateToday :: !Day,
-        historyStateDay :: !Day,
-        historyStateMaxDay :: !Day
-      }
+data HistoryState = HistoryState
+  { historyStateHabitMaps :: !(Load (Map Habit EntryMap)),
+    historyStateHabitCursor :: !(Load (Maybe (NonEmptyCursor HabitUuid))),
+    historyStateAmountCursor :: !TextCursor,
+    historyStateToday :: !Day,
+    historyStateDay :: !Day,
+    historyStateMaxDay :: !Day
+  }
   deriving (Show)
 
-data HabitListState
-  = HabitListState
-      { habitListStateHabits :: !(Load (Maybe (NonEmptyCursor Habit)))
-      }
+data HabitListState = HabitListState
+  { habitListStateHabits :: !(Load (Maybe (NonEmptyCursor Habit)))
+  }
   deriving (Show)
 
-data NewHabitState
-  = NewHabitState
-      { newHabitStateHabit :: Maybe HabitUuid, -- Nothing means new, Just means changing a habit
-        newHabitStateName :: TextCursor,
-        newHabitStateDescription :: TextCursor,
-        newHabitStateUnit :: TextCursor,
-        newHabitStateGoalType :: HabitType,
-        newHabitStateGoalBoolean :: Bool,
-        newHabitStateGoalNumerator :: TextCursor,
-        newHabitStateGoalDenominator :: TextCursor,
-        newHabitStateSelection :: NewHabitStateSelection
-      }
+data NewHabitState = NewHabitState
+  { newHabitStateHabit :: Maybe HabitUuid, -- Nothing means new, Just means changing a habit
+    newHabitStateName :: TextCursor,
+    newHabitStateDescription :: TextCursor,
+    newHabitStateUnit :: TextCursor,
+    newHabitStateGoalType :: HabitType,
+    newHabitStateGoalBoolean :: Bool,
+    newHabitStateGoalNumerator :: TextCursor,
+    newHabitStateGoalDenominator :: TextCursor,
+    newHabitStateSelection :: NewHabitStateSelection
+  }
   deriving (Show)
 
 makeChangeHabitState :: Habit -> NewHabitState

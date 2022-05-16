@@ -30,14 +30,13 @@ instance PersistFieldSql (UUID a) where
 
 type HabitUuid = UUID Habit
 
-data Habit
-  = Habit
-      { habitUuid :: !HabitUuid,
-        habitName :: !Text,
-        habitDescription :: !(Maybe Text),
-        habitUnit :: !Text, -- Trainings, Grams of sugar, ...
-        habitGoal :: !Goal
-      }
+data Habit = Habit
+  { habitUuid :: !HabitUuid,
+    habitName :: !Text,
+    habitDescription :: !(Maybe Text),
+    habitUnit :: !Text, -- Trainings, Grams of sugar, ...
+    habitGoal :: !Goal
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Habit
@@ -92,13 +91,12 @@ instance PersistField HabitType where
 instance PersistFieldSql HabitType where
   sqlType Proxy = sqlType (Proxy :: Proxy Text)
 
-data Goal
-  = Goal
-      { goalType :: !HabitType, -- Positive or negative
-        goalBoolean :: !Bool, -- Whether it's a boolean habit
-        goalNumerator :: !Word, -- How many of the unit
-        goalDenominator :: !Word -- How many days
-      }
+data Goal = Goal
+  { goalType :: !HabitType, -- Positive or negative
+    goalBoolean :: !Bool, -- Whether it's a boolean habit
+    goalNumerator :: !Word, -- How many of the unit
+    goalDenominator :: !Word -- How many days
+  }
   deriving (Show, Eq, Ord, Generic)
 
 instance Validity Goal where

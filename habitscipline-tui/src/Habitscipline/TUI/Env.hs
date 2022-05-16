@@ -5,10 +5,9 @@ import Data.Map (Map)
 import Database.Persist.Sql
 import Habitscipline.Data
 
-data Env
-  = Env
-      { envConnectionPool :: ConnectionPool
-      }
+data Env = Env
+  { envConnectionPool :: ConnectionPool
+  }
 
 type W = ReaderT Env IO
 

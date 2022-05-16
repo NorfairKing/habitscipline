@@ -32,22 +32,22 @@ habitsciplineTUI = do
   let dbFile = fromAbsFile settingDbFile
   let lockFilePath = dbFile ++ ".lock"
   mLocked <- withTryFileLock lockFilePath Exclusive $ \_ ->
-    runNoLoggingT
-      $ withSqlitePool (T.pack dbFile) 1
-      $ \pool -> do
-        _ <- runSqlPool (runMigrationQuiet clientMigration) pool
-        liftIO $ do
-          initialState <- buildInitialState
-          reqChan <- newBChan 1000
-          respChan <- newBChan 1000
-          let vtyBuilder = mkVty defaultConfig
-          firstVty <- vtyBuilder
-          let runTui = customMain firstVty vtyBuilder (Just respChan) (tuiApp reqChan) initialState
-          let env = Env {envConnectionPool = pool}
-          let runWorker = runReaderT (tuiWorker reqChan respChan) env
-          -- Left always works because the worker runs forever
-          Left _ <- race runTui runWorker
-          pure ()
+    runNoLoggingT $
+      withSqlitePool (T.pack dbFile) 1 $
+        \pool -> do
+          _ <- runSqlPool (runMigrationQuiet clientMigration) pool
+          liftIO $ do
+            initialState <- buildInitialState
+            reqChan <- newBChan 1000
+            respChan <- newBChan 1000
+            let vtyBuilder = mkVty defaultConfig
+            firstVty <- vtyBuilder
+            let runTui = customMain firstVty vtyBuilder (Just respChan) (tuiApp reqChan) initialState
+            let env = Env {envConnectionPool = pool}
+            let runWorker = runReaderT (tuiWorker reqChan respChan) env
+            -- Left always works because the worker runs forever
+            Left _ <- race runTui runWorker
+            pure ()
   case mLocked of
     Just () -> pure () -- Everything went file
     Nothing -> die "Unable to lock habit database."
@@ -67,12 +67,13 @@ tuiApp chan =
 buildInitialState :: IO State
 buildInitialState = do
   today <- utctDay <$> getCurrentTime
-  pure $ StateHistory $
-    HistoryState
-      { historyStateHabitMaps = Loading,
-        historyStateHabitCursor = Loading,
-        historyStateAmountCursor = emptyTextCursor,
-        historyStateToday = today,
-        historyStateDay = today,
-        historyStateMaxDay = today
-      }
+  pure $
+    StateHistory $
+      HistoryState
+        { historyStateHabitMaps = Loading,
+          historyStateHabitCursor = Loading,
+          historyStateAmountCursor = emptyTextCursor,
+          historyStateToday = today,
+          historyStateDay = today,
+          historyStateMaxDay = today
+        }

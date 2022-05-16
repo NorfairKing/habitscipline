@@ -58,7 +58,7 @@ daysShown :: Integer
 daysShown = 20
 
 days :: Day -> [Day]
-days maxDay = [addDays (- daysShown) maxDay .. maxDay]
+days maxDay = [addDays (-daysShown) maxDay .. maxDay]
 
 header :: Day -> Day -> Widget n
 header today maxDay =
@@ -75,15 +75,16 @@ header today maxDay =
                   if md == 1
                     then printf "%2d" month
                     else "  ",
-                withTodayAttr $ txt $
-                  case dow of
-                    Monday -> "Mo"
-                    Tuesday -> "Tu"
-                    Wednesday -> "We"
-                    Thursday -> "Th"
-                    Friday -> "Fr"
-                    Saturday -> "Sa"
-                    Sunday -> "Su",
+                withTodayAttr $
+                  txt $
+                    case dow of
+                      Monday -> "Mo"
+                      Tuesday -> "Tu"
+                      Wednesday -> "We"
+                      Thursday -> "Th"
+                      Friday -> "Fr"
+                      Saturday -> "Sa"
+                      Sunday -> "Su",
                 withTodayAttr $ str (printf "%2d" md)
               ]
    in hBox . intersperse (str " ") $ map dayColumn ds
@@ -121,14 +122,15 @@ habitRow selectedDay maxDay habitCursor amountCursor h em =
                   else printf "%2d" w
             amountWidget :: Maybe Word -> Widget ResourceName
             amountWidget mw =
-              hLimit 2 $ padLeft Max $
-                if isSelectedDay d && isSelectedHabit
-                  then
-                    forceAttr selectedBothAttr $
-                      selectedTextCursorWidget
-                        ResourceTextCursor
-                        amountCursor
-                  else str $ showAmount mw
+              hLimit 2 $
+                padLeft Max $
+                  if isSelectedDay d && isSelectedHabit
+                    then
+                      forceAttr selectedBothAttr $
+                        selectedTextCursorWidget
+                          ResourceTextCursor
+                          amountCursor
+                    else str $ showAmount mw
             mAmount = case entryMapLookup em d of
               Exactly w -> Just w
               NoDataBeforeFirst -> Nothing
@@ -159,37 +161,39 @@ habitRow selectedDay maxDay habitCursor amountCursor h em =
 
 drawHistoryState :: HistoryState -> [Widget ResourceName]
 drawHistoryState HistoryState {..} =
-  [ centerLayer $ borderWithLabel (str "[ Habitscipline ]") $ case historyStateHabitMaps of
-      Loading -> str "Loading"
-      Loaded m ->
-        padLeftRight 2 $ padAll 1 $
-          vBox
-            [ vBox $
-                header historyStateToday historyStateMaxDay
-                  : map (uncurry (habitRow historyStateDay historyStateMaxDay historyStateHabitCursor historyStateAmountCursor)) (M.toList m),
-              padTop (Pad 1) $ case historyStateHabitCursor of
-                Loading -> emptyWidget
-                Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
-                  Nothing -> emptyWidget
-                  Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
-                    Nothing -> emptyWidget
-                    Just (h@Habit {..}, em) ->
-                      let longestStreak = entryMapLongestStreak habitGoal em historyStateToday
-                          latestStreak = entryMapLatestStreak habitGoal em historyStateToday
-                          currentStreak = do
-                            latest <- latestStreak
-                            guard (streakIsCurrent latest historyStateToday)
-                            pure latest
-                       in vBox
-                            [ drawHabitDescription h,
-                              padTop (Pad 1) $
-                                vBox
-                                  [ str $ "Longest streak: " <> maybe "0" (show . streakDays) longestStreak,
-                                    str $ "Latest streak: " <> maybe "" (show . streakDays) latestStreak,
-                                    str $ "Current streak: " <> maybe "" (show . streakDays) currentStreak
-                                  ]
-                            ]
-            ]
+  [ centerLayer $
+      borderWithLabel (str "[ Habitscipline ]") $ case historyStateHabitMaps of
+        Loading -> str "Loading"
+        Loaded m ->
+          padLeftRight 2 $
+            padAll 1 $
+              vBox
+                [ vBox $
+                    header historyStateToday historyStateMaxDay :
+                    map (uncurry (habitRow historyStateDay historyStateMaxDay historyStateHabitCursor historyStateAmountCursor)) (M.toList m),
+                  padTop (Pad 1) $ case historyStateHabitCursor of
+                    Loading -> emptyWidget
+                    Loaded mnec -> case nonEmptyCursorCurrent <$> mnec of
+                      Nothing -> emptyWidget
+                      Just uuid -> case find ((== uuid) . habitUuid . fst) (M.toList m) of
+                        Nothing -> emptyWidget
+                        Just (h@Habit {..}, em) ->
+                          let longestStreak = entryMapLongestStreak habitGoal em historyStateToday
+                              latestStreak = entryMapLatestStreak habitGoal em historyStateToday
+                              currentStreak = do
+                                latest <- latestStreak
+                                guard (streakIsCurrent latest historyStateToday)
+                                pure latest
+                           in vBox
+                                [ drawHabitDescription h,
+                                  padTop (Pad 1) $
+                                    vBox
+                                      [ str $ "Longest streak: " <> maybe "0" (show . streakDays) longestStreak,
+                                        str $ "Latest streak: " <> maybe "" (show . streakDays) latestStreak,
+                                        str $ "Current streak: " <> maybe "" (show . streakDays) currentStreak
+                                      ]
+                                ]
+                ]
   ]
 
 drawHabitListState :: HabitListState -> [Widget ResourceName]
@@ -224,27 +228,27 @@ drawHabitDescription Habit {..} =
           hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txt habitDescription],
           hBox
             [ str "Goal: ",
-              markup
-                $ mconcat
-                $ case goalType of
-                  PositiveHabit ->
-                    [ "I want to achieve ",
-                      T.pack (show goalNumerator) @? numeratorAttr,
-                      " ",
-                      habitUnit @? unitAttr,
-                      " every ",
-                      T.pack (show goalDenominator) @? denominatorAttr,
-                      " days."
-                    ]
-                  NegativeHabit ->
-                    [ "I want to have at most ",
-                      T.pack (show goalNumerator) @? numeratorAttr,
-                      " ",
-                      habitUnit @? unitAttr,
-                      " every ",
-                      T.pack (show goalDenominator) @? denominatorAttr,
-                      " days."
-                    ]
+              markup $
+                mconcat $
+                  case goalType of
+                    PositiveHabit ->
+                      [ "I want to achieve ",
+                        T.pack (show goalNumerator) @? numeratorAttr,
+                        " ",
+                        habitUnit @? unitAttr,
+                        " every ",
+                        T.pack (show goalDenominator) @? denominatorAttr,
+                        " days."
+                      ]
+                    NegativeHabit ->
+                      [ "I want to have at most ",
+                        T.pack (show goalNumerator) @? numeratorAttr,
+                        " ",
+                        habitUnit @? unitAttr,
+                        " every ",
+                        T.pack (show goalDenominator) @? denominatorAttr,
+                        " days."
+                      ]
             ]
         ]
 
@@ -255,76 +259,81 @@ drawNewHabitState nhs@NewHabitState {..} =
         if newHabitStateSelection == sel
           then selectedTextCursorWidget ResourceTextCursor
           else textCursorWidget
-   in [ borderWithLabel (str "[ Habit ]")
-          $ padLeftRight 1
-          $ vBox
-            [ selIf SelectName $
-                hBox
-                  [ str "Name: ",
-                    withAttr nameAttr $ textWithSelection SelectName newHabitStateName
-                  ],
-              selIf SelectDescription $
-                hBox
-                  [ str "Description: ",
-                    withAttr descriptionAttr $ textWithSelection SelectDescription newHabitStateDescription
-                  ],
-              selIf SelectUnit $
-                hBox
-                  [ str "Unit: ",
-                    withAttr unitAttr $ textWithSelection SelectUnit newHabitStateUnit
-                  ],
-              selIf SelectGoalType $
-                hBox
-                  [ str "Type: ",
-                    withAttr typeAttr $ txt $ renderHabitType newHabitStateGoalType
-                  ],
-              selIf SelectGoalBoolean $
-                hBox
-                  [ str "Boolean: ",
-                    withAttr booleanAttr $ txt $ if newHabitStateGoalBoolean then "Yes" else "No"
-                  ],
-              selIf SelectGoalNumerator $
-                hBox
-                  [ str "Numerator: ",
-                    withAttr numeratorAttr $ textWithSelection SelectGoalNumerator newHabitStateGoalNumerator
-                  ],
-              selIf SelectGoalDenominator $
-                hBox
-                  [ str "Denominator: ",
-                    withAttr denominatorAttr $ textWithSelection SelectGoalDenominator newHabitStateGoalDenominator
-                  ],
-              padTop (Pad 1) $ markup
-                $ mconcat
-                $ case newHabitStateGoalType of
-                  PositiveHabit ->
-                    [ "I want to achieve ",
-                      rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                      " ",
-                      rebuildTextCursor newHabitStateUnit @? unitAttr,
-                      " every ",
-                      rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                      " days."
-                    ]
-                  NegativeHabit ->
-                    [ "I want to have at most ",
-                      rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                      " ",
-                      rebuildTextCursor newHabitStateUnit @? unitAttr,
-                      " every ",
-                      rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                      " days."
+   in [ borderWithLabel (str "[ Habit ]") $
+          padLeftRight 1 $
+            vBox
+              [ selIf SelectName $
+                  hBox
+                    [ str "Name: ",
+                      withAttr nameAttr $ textWithSelection SelectName newHabitStateName
                     ],
-              case newHabitStateCompleteHabit undefined nhs of
-                Left t -> withDefAttr errorAttr $ borderWithLabel (str "[ Error ]") $ padLeftRight 1 $ txt t
-                Right _ -> emptyWidget,
-              hBox
-                [ selIf SelectCancelButton $ border $ padLeftRight 1 $ withAttr cancelButtonAttr $ str "Cancel",
-                  selIf SelectCreateButton $ border $ padLeftRight 1 $ withAttr createButtonAttr $ str $ case newHabitStateHabit of
-                    Nothing -> "Create"
-                    Just _ -> "Save"
-                ],
-              str "Tab: Next, Shift-Tab: Previous"
-            ]
+                selIf SelectDescription $
+                  hBox
+                    [ str "Description: ",
+                      withAttr descriptionAttr $ textWithSelection SelectDescription newHabitStateDescription
+                    ],
+                selIf SelectUnit $
+                  hBox
+                    [ str "Unit: ",
+                      withAttr unitAttr $ textWithSelection SelectUnit newHabitStateUnit
+                    ],
+                selIf SelectGoalType $
+                  hBox
+                    [ str "Type: ",
+                      withAttr typeAttr $ txt $ renderHabitType newHabitStateGoalType
+                    ],
+                selIf SelectGoalBoolean $
+                  hBox
+                    [ str "Boolean: ",
+                      withAttr booleanAttr $ txt $ if newHabitStateGoalBoolean then "Yes" else "No"
+                    ],
+                selIf SelectGoalNumerator $
+                  hBox
+                    [ str "Numerator: ",
+                      withAttr numeratorAttr $ textWithSelection SelectGoalNumerator newHabitStateGoalNumerator
+                    ],
+                selIf SelectGoalDenominator $
+                  hBox
+                    [ str "Denominator: ",
+                      withAttr denominatorAttr $ textWithSelection SelectGoalDenominator newHabitStateGoalDenominator
+                    ],
+                padTop (Pad 1) $
+                  markup $
+                    mconcat $
+                      case newHabitStateGoalType of
+                        PositiveHabit ->
+                          [ "I want to achieve ",
+                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
+                            " ",
+                            rebuildTextCursor newHabitStateUnit @? unitAttr,
+                            " every ",
+                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
+                            " days."
+                          ]
+                        NegativeHabit ->
+                          [ "I want to have at most ",
+                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
+                            " ",
+                            rebuildTextCursor newHabitStateUnit @? unitAttr,
+                            " every ",
+                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
+                            " days."
+                          ],
+                case newHabitStateCompleteHabit undefined nhs of
+                  Left t -> withDefAttr errorAttr $ borderWithLabel (str "[ Error ]") $ padLeftRight 1 $ txt t
+                  Right _ -> emptyWidget,
+                hBox
+                  [ selIf SelectCancelButton $ border $ padLeftRight 1 $ withAttr cancelButtonAttr $ str "Cancel",
+                    selIf SelectCreateButton $
+                      border $
+                        padLeftRight 1 $
+                          withAttr createButtonAttr $
+                            str $ case newHabitStateHabit of
+                              Nothing -> "Create"
+                              Just _ -> "Save"
+                  ],
+                str "Tab: Next, Shift-Tab: Previous"
+              ]
       ]
 
 nameAttr :: AttrName

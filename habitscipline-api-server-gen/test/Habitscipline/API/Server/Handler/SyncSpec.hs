@@ -10,8 +10,8 @@ import Test.Hspec
 import Test.Validity
 
 spec :: Spec
-spec = serverSpec
-  $ describe "PostSync"
-  $ it "does not crash"
-  $ \cenv -> forAllValid $ \req -> withAnyNewUser cenv $ \token ->
-    void $ testClientOrErr cenv $ postSync habitsciplineClient token req
+spec = serverSpec $
+  describe "PostSync" $
+    it "does not crash" $
+      \cenv -> forAllValid $ \req -> withAnyNewUser cenv $ \token ->
+        void $ testClientOrErr cenv $ postSync habitsciplineClient token req

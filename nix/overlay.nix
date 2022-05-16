@@ -4,53 +4,58 @@ with final.haskell.lib;
 {
   habitsciplineCasts =
     let
-      mkCastDerivation = import (
-        builtins.fetchGit {
-          url = "https://github.com/NorfairKing/autorecorder";
-          rev = "da5bf9d61108a4a89addc8203b1579a364ce8c01";
-          ref = "master";
-        } + "/nix/cast.nix"
-      ) { pkgs = final // final.habitsciplinePackages; };
+      mkCastDerivation = import
+        (
+          builtins.fetchGit
+            {
+              url = "https://github.com/NorfairKing/autorecorder";
+              rev = "da5bf9d61108a4a89addc8203b1579a364ce8c01";
+              ref = "master";
+            } + "/nix/cast.nix"
+        )
+        { pkgs = final // final.habitsciplinePackages; };
     in
-      {
-        habitscipline-basics-cast = mkCastDerivation {
-          name = "habitscipline-basics-cast";
-          src = ../casts/basics.yaml;
-        };
+    {
+      habitscipline-basics-cast = mkCastDerivation {
+        name = "habitscipline-basics-cast";
+        src = ../casts/basics.yaml;
       };
+    };
   habitsciplinePackages =
     let
       habitsciplinePkg =
         name:
-          doBenchmark (
-            addBuildDepend (
+        doBenchmark (
+          addBuildDepend
+            (
               failOnAllWarnings (
                 disableLibraryProfiling (
-                  final.haskellPackages.callCabal2nix name (final.gitignoreSource (../. + "/${name}")) {}
+                  final.haskellPackages.callCabal2nix name (final.gitignoreSource (../. + "/${name}")) { }
                 )
               )
-            ) (final.haskellPackages.autoexporter)
-          );
+            )
+            (final.haskellPackages.autoexporter)
+        );
       habitsciplinePkgWithComp =
         exeName: name:
-          generateOptparseApplicativeCompletion exeName (habitsciplinePkg name);
+        generateOptparseApplicativeCompletion exeName (habitsciplinePkg name);
       habitsciplinePkgWithOwnComp = name: habitsciplinePkgWithComp name name;
 
     in
-      {
-        "habitscipline-api" = habitsciplinePkg "habitscipline-api";
-        "habitscipline-api-gen" = habitsciplinePkg "habitscipline-api-gen";
-        "habitscipline-api-server" = habitsciplinePkgWithOwnComp "habitscipline-api-server";
-        "habitscipline-api-server-data" = habitsciplinePkg "habitscipline-api-server-data";
-        "habitscipline-api-server-data-gen" = habitsciplinePkg "habitscipline-api-server-data-gen";
-        "habitscipline-api-server-gen" = habitsciplinePkg "habitscipline-api-server-gen";
-        "habitscipline-cli" = habitsciplinePkgWithOwnComp "habitscipline-cli";
-        "habitscipline-client" = habitsciplinePkg "habitscipline-client";
-        "habitscipline-client-data" = habitsciplinePkg "habitscipline-client-data";
-        "habitscipline-data" = habitsciplinePkg "habitscipline-data";
-        "habitscipline-data-gen" = habitsciplinePkg "habitscipline-data-gen";
-        "habitscipline-tui" = habitsciplinePkgWithOwnComp "habitscipline-tui";
-      };
+    {
+      "habitscipline-api" = habitsciplinePkg "habitscipline-api";
+      "habitscipline-api-gen" = habitsciplinePkg "habitscipline-api-gen";
+      "habitscipline-api-server" = habitsciplinePkgWithOwnComp "habitscipline-api-server";
+      "habitscipline-api-server-data" = habitsciplinePkg "habitscipline-api-server-data";
+      "habitscipline-api-server-data-gen" = habitsciplinePkg "habitscipline-api-server-data-gen";
+      "habitscipline-api-server-gen" = habitsciplinePkg "habitscipline-api-server-gen";
+      "habitscipline-cli" = habitsciplinePkgWithOwnComp "habitscipline-cli";
+      "habitscipline-client" = habitsciplinePkg "habitscipline-client";
+      "habitscipline-client-data" = habitsciplinePkg "habitscipline-client-data";
+      "habitscipline-data" = habitsciplinePkg "habitscipline-data";
+      "habitscipline-data-gen" = habitsciplinePkg "habitscipline-data-gen";
+      "habitscipline-tui" = habitsciplinePkgWithOwnComp "habitscipline-tui";
+    };
 
   habitsciplineRelease =
     final.symlinkJoin {
@@ -61,15 +66,17 @@ with final.haskell.lib;
   haskellPackages =
     previous.haskellPackages.override (
       old:
-        {
-          overrides =
-            final.lib.composeExtensions (
+      {
+        overrides =
+          final.lib.composeExtensions
+            (
               old.overrides or (
                 _:
                 _:
-                  {}
+                { }
               )
-            ) (
+            )
+            (
               self: super:
                 let
                   # envparse
@@ -83,14 +90,14 @@ with final.haskell.lib;
                     };
                   envparsePkg =
                     dontCheck (
-                      self.callCabal2nix "envparse" envparseRepo {}
+                      self.callCabal2nix "envparse" envparseRepo { }
                     );
 
                 in
-                  final.habitsciplinePackages // {
-                    envparse = envparsePkg;
-                  }
+                final.habitsciplinePackages // {
+                  envparse = envparsePkg;
+                }
             );
-        }
+      }
     );
 }

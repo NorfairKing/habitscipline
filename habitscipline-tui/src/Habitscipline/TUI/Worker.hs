@@ -5,8 +5,8 @@ module Habitscipline.TUI.Worker where
 import Brick.BChan
 import Control.Monad
 import Control.Monad.IO.Class
-import qualified Data.Map as M
 import Data.Map (Map)
+import qualified Data.Map as M
 import Database.Persist
 import Database.Persist.Sql
 import Habitscipline.Client.Data
@@ -44,20 +44,21 @@ tuiWorker reqChan respChan = forever $ do
       maps <- runDB calculateHistory
       pure $ Just $ ResponseHistory maps
     RequestPutHabit h@Habit {..} -> do
-      void $ runDB $
-        upsertBy
-          (UniqueClientHabitUuid habitUuid)
-          (makeUnsyncedClientHabit h)
-          ( let Goal {..} = habitGoal
-             in [ ClientHabitName =. habitName,
-                  ClientHabitDescription =. habitDescription,
-                  ClientHabitUnit =. habitUnit,
-                  ClientHabitGoalType =. goalType,
-                  ClientHabitGoalBoolean =. goalBoolean,
-                  ClientHabitGoalNumerator =. goalNumerator,
-                  ClientHabitGoalDenominator =. goalDenominator
-                ]
-          )
+      void $
+        runDB $
+          upsertBy
+            (UniqueClientHabitUuid habitUuid)
+            (makeUnsyncedClientHabit h)
+            ( let Goal {..} = habitGoal
+               in [ ClientHabitName =. habitName,
+                    ClientHabitDescription =. habitDescription,
+                    ClientHabitUnit =. habitUnit,
+                    ClientHabitGoalType =. goalType,
+                    ClientHabitGoalBoolean =. goalBoolean,
+                    ClientHabitGoalNumerator =. goalNumerator,
+                    ClientHabitGoalDenominator =. goalDenominator
+                  ]
+            )
       pure Nothing
   forM mResp $ \resp -> liftIO $ writeBChan respChan resp
 
@@ -65,7 +66,8 @@ calculateHistory :: SqlPersistT IO (Map Habit EntryMap)
 calculateHistory = do
   habits <- map (clientMakeHabit_ . entityVal) <$> selectList [] []
   entries <- map (clientMakeEntry_ . entityVal) <$> selectList [] []
-  let maps = M.fromList $ flip map habits $ \habit ->
-        let relevantEntries = filter ((== habitUuid habit) . entryHabit) entries
-         in (habit, EntryMap $ M.fromList $ map (\Entry {..} -> (entryDay, entryAmount)) relevantEntries)
+  let maps = M.fromList $
+        flip map habits $ \habit ->
+          let relevantEntries = filter ((== habitUuid habit) . entryHabit) entries
+           in (habit, EntryMap $ M.fromList $ map (\Entry {..} -> (entryDay, entryAmount)) relevantEntries)
   pure maps

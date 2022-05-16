@@ -27,11 +27,10 @@ getSettings = do
   config <- getConfiguration flags env
   combineToSettings flags env config
 
-data Settings
-  = Settings
-      { settingDbFile :: Path Abs File,
-        settingLogLevel :: LogLevel
-      }
+data Settings = Settings
+  { settingDbFile :: Path Abs File,
+    settingLogLevel :: LogLevel
+  }
   deriving (Show, Eq, Generic)
 
 combineToSettings :: Flags -> Environment -> Maybe Configuration -> IO Settings
@@ -45,11 +44,10 @@ combineToSettings Flags {..} Environment {..} mConf = do
     mc :: (Configuration -> Maybe a) -> Maybe a
     mc f = mConf >>= f
 
-data Configuration
-  = Configuration
-      { configDbFile :: Maybe FilePath,
-        configLogLevel :: Maybe LogLevel
-      }
+data Configuration = Configuration
+  { configDbFile :: Maybe FilePath,
+    configLogLevel :: Maybe LogLevel
+  }
   deriving (Show, Eq, Generic)
 
 instance FromJSON Configuration where
@@ -75,12 +73,11 @@ defaultConfigFile = do
   xdgConfigDir <- getXdgDir XdgConfig (Just [reldir|optparse-template|])
   resolveFile xdgConfigDir "config.yaml"
 
-data Environment
-  = Environment
-      { envConfigFile :: Maybe FilePath,
-        envDbFile :: Maybe FilePath,
-        envLogLevel :: Maybe LogLevel
-      }
+data Environment = Environment
+  { envConfigFile :: Maybe FilePath,
+    envDbFile :: Maybe FilePath,
+    envLogLevel :: Maybe LogLevel
+  }
   deriving (Show, Eq, Generic)
 
 getEnvironment :: IO Environment
@@ -121,12 +118,11 @@ flagsParser =
           T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
         ]
 
-data Flags
-  = Flags
-      { flagConfigFile :: Maybe FilePath,
-        flagDbFile :: Maybe FilePath,
-        flagLogLevel :: Maybe LogLevel
-      }
+data Flags = Flags
+  { flagConfigFile :: Maybe FilePath,
+    flagDbFile :: Maybe FilePath,
+    flagLogLevel :: Maybe LogLevel
+  }
   deriving (Show, Eq, Generic)
 
 parseFlags :: OptParse.Parser Flags
