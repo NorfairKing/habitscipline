@@ -7,4 +7,4 @@ import Habitscipline.API.Data as X
 import Habitscipline.API.Server.Data as X
 import Habitscipline.API.Server.Env as X
 import Habitscipline.Data as X
-import Servant as X
+import Servant as X hiding (Unique)

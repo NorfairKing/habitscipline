@@ -12,6 +12,8 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+  - autodocodec
+  - autodocodec-yaml
   - cookie
   - envparse
   - filelock
@@ -38,7 +40,6 @@ library:
   - time
   - typed-uuid
   - yaml
-  - yamlparse-applicative
 
 executables:
   habitscipline-cli:

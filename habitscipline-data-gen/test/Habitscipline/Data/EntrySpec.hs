@@ -16,9 +16,9 @@ import Test.Validity.Aeson
 spec :: Spec
 spec = do
   genValidSpec @Entry
-  jsonSpecOnValid @Entry
+  jsonSpec @Entry
   genValidSpec @EntryMap
-  jsonSpecOnValid @EntryMap
+  jsonSpec @EntryMap
   describe "entryMapRangeSum" $
     it "produces valid amounts" $
       forAllValid $ \b -> forAllValid $ \em -> forAllValid $ \begin -> forAllValid $ \end ->

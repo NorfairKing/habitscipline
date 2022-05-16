@@ -1,5 +1,7 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -15,7 +17,7 @@ module Habitscipline.API.Server.Data.DB where
 
 import Data.Mergeful
 import Data.Mergeful.Persistent ()
-import Data.Password
+import Data.Password.Bcrypt
 import Data.Password.Instances ()
 import Data.Text (Text)
 import Data.Time
@@ -27,6 +29,8 @@ import Database.Persist.TH
 import GHC.Generics (Generic)
 import Habitscipline.API.Server.Data.Username
 import Habitscipline.Data
+
+type PassHash = PasswordHash Bcrypt
 
 share
   [mkPersist sqlSettings, mkMigrate "serverMigration"]
@@ -70,10 +74,10 @@ ServerEntry sql=entry
   UniqueEntryDay habit user day
 |]
 
-instance Validity Salt where
+instance Validity (Salt Bcrypt) where
   validate = trivialValidation
 
-instance Validity Pass where
+instance Validity Password where
   validate = trivialValidation
 
 instance Validity PassHash where

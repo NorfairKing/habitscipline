@@ -15,9 +15,9 @@ import Test.Validity.Persist
 spec :: Spec
 spec = do
   genValidSpec @Habit
-  jsonSpecOnValid @Habit
+  jsonSpec @Habit
   genValidSpec @HabitType
-  jsonSpecOnValid @HabitType
-  persistSpecOnValid @HabitType
+  jsonSpec @HabitType
+  persistSpec @HabitType
   genValidSpec @Goal
-  jsonSpecOnValid @Goal
+  jsonSpec @Goal

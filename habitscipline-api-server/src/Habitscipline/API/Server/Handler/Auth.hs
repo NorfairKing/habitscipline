@@ -4,7 +4,7 @@
 module Habitscipline.API.Server.Handler.Auth where
 
 import Control.Monad.IO.Class
-import Data.Password
+import Data.Password.Bcrypt
 import qualified Data.Text.Encoding as TE
 import Habitscipline.API.Server.Handler.Import
 import Servant.Auth.Server (makeSessionCookieBS)
@@ -15,7 +15,7 @@ handlePostRegister RegistrationForm {..} = do
   case mUser of
     Just _ -> throwError err409
     Nothing -> do
-      pass <- hashPass $ mkPass registrationFormPassword
+      pass <- hashPassword $ mkPassword registrationFormPassword
       runDB $ insert_ $ User {userName = registrationFormUsername, userPassword = pass}
       pure NoContent
 
@@ -25,9 +25,9 @@ handlePostLogin LoginForm {..} = do
   case mUser of
     Nothing -> throwError err401 -- Not 404, because then we leak data about users.
     Just (Entity _ User {..}) ->
-      case checkPass (mkPass loginFormPassword) userPassword of
-        PassCheckFail -> throwError err401
-        PassCheckSuccess -> do
+      case checkPassword (mkPassword loginFormPassword) userPassword of
+        PasswordCheckFail -> throwError err401
+        PasswordCheckSuccess -> do
           let authCookie = AuthCookie {authCookieUsername = loginFormUsername}
           cookieSettings <- asks envCookieSettings
           jwtSettings <- asks envJWTSettings

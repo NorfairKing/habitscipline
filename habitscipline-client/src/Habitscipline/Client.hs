@@ -6,7 +6,7 @@ module Habitscipline.Client
 where
 
 import Habitscipline.API
-import Servant.API as X
+import Servant.API as X hiding (Unique)
 import Servant.Auth.Client as X
 import Servant.Client as X
 import Servant.Client.Generic
