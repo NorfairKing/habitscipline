@@ -22,6 +22,8 @@ spec = serverSpec $
         setEnv "HABITSCIPLINE_PASSWORD" $ T.unpack $ registrationFormPassword rf
         dbFile <- resolveFile tdir "habitscipline-client.sqlite3"
         setEnv "HABITSCIPLINE_DATABASE" $ fromAbsFile dbFile
+        configFile <- resolveFile tdir "habitscipline-config.yaml"
+        setEnv "HABITSCIPLINE_CONFIG_FILE" $ fromAbsFile configFile
         let testHabitscipline args = withArgs args habitsciplineCLI
         testHabitscipline ["register"]
         testHabitscipline ["login"]

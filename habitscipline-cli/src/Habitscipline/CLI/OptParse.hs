@@ -5,6 +5,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Habitscipline.CLI.OptParse
   ( getInstructions,
@@ -124,8 +125,7 @@ data Configuration = Configuration
     configUsername :: Maybe Username,
     configPassword :: Maybe Text,
     configDbFile :: Maybe FilePath,
-    configLogLevel :: Maybe LogLevel,
-    configSpecifications :: [FilePath]
+    configLogLevel :: Maybe LogLevel
   }
   deriving stock (Show, Eq, Generic)
   deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
@@ -139,7 +139,6 @@ instance HasCodec Configuration where
         <*> optionalFieldOrNull "password" "Server account password" .= configPassword
         <*> optionalFieldOrNull "database" "The path to the database" .= configDbFile
         <*> optionalFieldOrNull "log-level" "The minimal severity for log messages" .= configLogLevel
-        <*> optionalFieldOrNullWithOmittedDefault "decks" [] "The files and directories containing card definitions" .= configSpecifications
 
 instance HasCodec LogLevel where
   codec =
