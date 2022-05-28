@@ -54,16 +54,17 @@ executables:
 
 tests:
   habitscipline-cli-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
+    build-tools: sydtest-discover
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - genvalidity
-    - genvalidity-hspec
-    - hspec
+    - genvalidity-sydtest
+    - sydtest
     - path
     - path-io
     - servant-client

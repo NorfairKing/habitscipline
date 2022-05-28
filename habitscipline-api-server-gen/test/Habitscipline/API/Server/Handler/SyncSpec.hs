@@ -6,8 +6,8 @@ import Habitscipline.API.Data.Gen ()
 import Habitscipline.API.Server.TestUtils
 import Habitscipline.Client
 import Habitscipline.Data.Gen ()
-import Test.Hspec
-import Test.Validity
+import Test.Syd
+import Test.Syd.Validity
 
 spec :: Spec
 spec = serverSpec $

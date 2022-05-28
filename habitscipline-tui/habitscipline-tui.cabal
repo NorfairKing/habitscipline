@@ -1,0 +1,63 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.7.
+--
+-- see: https://github.com/sol/hpack
+
+name:           habitscipline-tui
+version:        0.0.0.0
+license:        AllRightsReserved
+build-type:     Simple
+
+library
+  exposed-modules:
+      Habitscipline.TUI
+      Habitscipline.TUI.Draw
+      Habitscipline.TUI.Env
+      Habitscipline.TUI.Handle
+      Habitscipline.TUI.OptParse
+      Habitscipline.TUI.State
+      Habitscipline.TUI.Worker
+  other-modules:
+      Paths_habitscipline_tui
+  hs-source-dirs:
+      src
+  build-depends:
+      async
+    , base >=4.7 && <5
+    , brick
+    , containers
+    , cursor
+    , cursor-brick
+    , directory
+    , envparse
+    , filelock
+    , habitscipline-cli
+    , habitscipline-client-data
+    , habitscipline-data
+    , monad-logger
+    , mtl
+    , optparse-applicative
+    , path
+    , path-io
+    , persistent
+    , persistent-sqlite
+    , text
+    , time
+    , typed-uuid
+    , vty
+    , yaml
+    , yamlparse-applicative
+  default-language: Haskell2010
+
+executable habitscipline-tui
+  main-is: Main.hs
+  other-modules:
+      Paths_habitscipline_tui
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , habitscipline-tui
+  default-language: Haskell2010

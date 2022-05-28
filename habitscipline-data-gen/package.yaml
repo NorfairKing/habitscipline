@@ -27,20 +27,21 @@ library:
 
 tests:
   habitscipline-data-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
+    build-tools: sydtest-discover
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - containers
-    - genvalidity-hspec
-    - genvalidity-hspec-aeson
-    - genvalidity-hspec-persistent
+    - genvalidity-sydtest
+    - genvalidity-sydtest-aeson
+    - genvalidity-sydtest-persistent
     - habitscipline-data
     - habitscipline-data-gen
-    - hspec
+    - sydtest
     - path
     - path-io
     - yamlparse-applicative

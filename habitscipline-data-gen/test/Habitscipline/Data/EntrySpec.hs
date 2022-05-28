@@ -9,9 +9,9 @@ import qualified Data.Map as M
 import Habitscipline.Data.Entry
 import Habitscipline.Data.Entry.Gen ()
 import Habitscipline.Data.Habit.Gen ()
-import Test.Hspec
-import Test.Validity
-import Test.Validity.Aeson
+import Test.Syd
+import Test.Syd.Validity
+import Test.Syd.Validity.Aeson
 
 spec :: Spec
 spec = do

@@ -1,4 +1,5 @@
 final: previous:
+with final.lib;
 with final.haskell.lib;
 
 {
@@ -23,19 +24,44 @@ with final.haskell.lib;
     };
   habitsciplinePackages =
     let
-      habitsciplinePkg =
-        name:
-        doBenchmark (
-          addBuildDepend
-            (
-              failOnAllWarnings (
-                disableLibraryProfiling (
-                  final.haskellPackages.callCabal2nix name (final.gitignoreSource (../. + "/${name}")) { }
-                )
-              )
-            )
-            (final.haskellPackages.autoexporter)
-        );
+      habitsciplinePkg = name:
+        overrideCabal
+          (
+            final.haskellPackages.callCabal2nixWithOptions name
+              (final.gitignoreSource (../. + "/${name}"))
+              "--no-hpack"
+              { }
+          )
+          (old: {
+            doBenchmark = true;
+            doHaddock = false;
+            doCoverage = false;
+            doHoogle = false;
+            doCheck = false; # Only check the release version.
+            hyperlinkSource = false;
+            enableLibraryProfiling = false;
+            enableExecutableProfiling = false;
+
+            configureFlags = (old.configureFlags or [ ]) ++ [
+              # Optimisations
+              "--ghc-options=-O2"
+              # Extra warnings
+              "--ghc-options=-Wall"
+              "--ghc-options=-Wincomplete-uni-patterns"
+              "--ghc-options=-Wincomplete-record-updates"
+              "--ghc-options=-Wpartial-fields"
+              "--ghc-options=-Widentities"
+              "--ghc-options=-Wredundant-constraints"
+              "--ghc-options=-Wcpp-undef"
+              "--ghc-options=-Werror"
+            ];
+            buildDepends = (old.buildDepends or [ ]) ++ [
+              final.haskellPackages.autoexporter
+            ];
+            # Ugly hack because we can't just add flags to the 'test' invocation.
+            # Show test output as we go, instead of all at once afterwards.
+            testTarget = (old.testTarget or "") + " --show-details=direct";
+          });
       habitsciplinePkgWithComp =
         exeName: name:
         generateOptparseApplicativeCompletion exeName (habitsciplinePkg name);
@@ -57,10 +83,15 @@ with final.haskell.lib;
       "habitscipline-tui" = habitsciplinePkgWithOwnComp "habitscipline-tui";
     };
 
+  habitsciplineReleasePackages = mapAttrs
+    (_: pkg: justStaticExecutables (doCheck pkg))
+    final.habitsciplinePackages;
+
+
   habitsciplineRelease =
     final.symlinkJoin {
       name = "habitscipline-release";
-      paths = final.lib.attrValues final.habitsciplinePackages;
+      paths = final.lib.attrValues final.habitsciplineReleasePackages;
     };
 
   haskellPackages =

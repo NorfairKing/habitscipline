@@ -7,10 +7,10 @@ where
 
 import Habitscipline.Data.Habit
 import Habitscipline.Data.Habit.Gen ()
-import Test.Hspec
-import Test.Validity
-import Test.Validity.Aeson
-import Test.Validity.Persist
+import Test.Syd
+import Test.Syd.Validity
+import Test.Syd.Validity.Aeson
+import Test.Syd.Validity.Persist
 
 spec :: Spec
 spec = do

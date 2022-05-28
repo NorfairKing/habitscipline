@@ -7,8 +7,8 @@ where
 
 import Habitscipline.API.Data
 import Habitscipline.API.Data.Gen ()
-import Test.Hspec
-import Test.Validity
+import Test.Syd
+import Test.Syd.Validity
 
 spec :: Spec
 spec = do

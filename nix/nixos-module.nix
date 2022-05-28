@@ -62,7 +62,7 @@ in
     };
   config =
     let
-      habitsciplinePkgs = (import ./pkgs.nix { }).habitsciplinePackages;
+      habitsciplinePkgs = (import ./pkgs.nix { }).habitsciplineReleasePackages;
       working-dir = "/www/habitscipline/${envname}/";
       # The docs server
       api-server-working-dir = working-dir + "api-server/";

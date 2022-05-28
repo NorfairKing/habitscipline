@@ -22,14 +22,15 @@ library:
 
 tests:
   habitscipline-api-test:
-    main:                Spec.hs
-    source-dirs:         test
+    main: Spec.hs
+    source-dirs: test
+    build-tools: sydtest-discover
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - genvalidity-hspec
-    - hspec
+    - genvalidity-sydtest
+    - sydtest
     - habitscipline-api
     - habitscipline-api-gen

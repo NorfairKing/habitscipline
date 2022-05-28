@@ -6,9 +6,9 @@ import Habitscipline.API.Data.Gen ()
 import Habitscipline.API.Server.TestUtils
 import Habitscipline.Client
 import Network.HTTP.Types as HTTP
-import Test.Hspec
 import Test.QuickCheck
-import Test.Validity
+import Test.Syd
+import Test.Syd.Validity
 
 spec :: Spec
 spec = serverSpec $ do
@@ -25,9 +25,9 @@ spec = serverSpec $ do
         case errOrRes of
           Left err -> case err of
             FailureResponse _ resp | responseStatusCode resp == HTTP.unauthorized401 -> pure ()
-            _ -> failure $ "Should have errored with code 401, got this instead: " <> show err
-          _ -> failure "Should have errored"
-    it "shows no difference between a login failure for a user that exists and a user that doesn't exist" $ \cenv ->
+            _ -> expectationFailure $ "Should have errored with code 401, got this instead: " <> show err
+          _ -> expectationFailure "Should have errored"
+    it "shows no difference between a login expectationFailure for a user that exists and a user that doesn't exist" $ \cenv ->
       forAllValid $ \un1 ->
         forAll (genValid `suchThat` (/= un1)) $ \un2 ->
           forAllValid $ \pw1 ->

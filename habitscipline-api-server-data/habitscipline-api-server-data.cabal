@@ -1,0 +1,49 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.34.7.
+--
+-- see: https://github.com/sol/hpack
+
+name:           habitscipline-api-server-data
+version:        0.0.0.0
+homepage:       https://github.com/NorfairKing/habitscipline#readme
+bug-reports:    https://github.com/NorfairKing/habitscipline/issues
+author:         Tom Sydney Kerckhove
+maintainer:     syd@cs-syd.eu
+copyright:      Copyright (c) 2020 Tom Sydney Kerckhove
+license:        AllRightsReserved
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/NorfairKing/habitscipline
+
+library
+  exposed-modules:
+      Habitscipline.API.Server.Data
+      Habitscipline.API.Server.Data.DB
+      Habitscipline.API.Server.Data.Username
+  other-modules:
+      Paths_habitscipline_api_server_data
+  hs-source-dirs:
+      src
+  build-depends:
+      aeson
+    , autodocodec
+    , base >=4.7 && <5
+    , habitscipline-data
+    , mergeful
+    , mergeful-persistent
+    , password
+    , password-instances
+    , persistent
+    , persistent-sqlite
+    , persistent-template
+    , text
+    , time
+    , validity
+    , validity-persistent
+    , validity-text
+    , validity-time
+    , yamlparse-applicative
+  default-language: Haskell2010
