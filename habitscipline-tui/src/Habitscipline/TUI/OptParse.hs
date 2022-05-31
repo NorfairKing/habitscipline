@@ -88,11 +88,9 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "HABITSCIPLINE_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.str) "DATABASE" (mE <> Env.help "Path to the database")
-      <*> Env.var (fmap Just . Env.auto) "LOG_LEVEL" (mE <> Env.help "Minimal severity for log messages")
-  where
-    mE = Env.def Nothing
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var Env.str "DATABASE" (Env.help "Path to the database"))
+      <*> optional (Env.var Env.auto "LOG_LEVEL" (Env.help "Minimal severity for log messages"))
 
 getFlags :: IO Flags
 getFlags = customExecParser prefs_ flagsParser

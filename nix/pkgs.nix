@@ -3,7 +3,7 @@
 import sources.nixpkgs {
   overlays =
     [
-      (import (sources.appendful + "/nix/overlay.nix"))
+      (final: previous: { inherit (import sources.gitignore { inherit (final) lib; }) gitignoreSource; })
       (import (sources.appendful + "/nix/overlay.nix"))
       (import (sources.autodocodec + "/nix/overlay.nix"))
       (import (sources.cursor + "/nix/overlay.nix"))
@@ -14,7 +14,6 @@ import sources.nixpkgs {
       (import (sources.typed-uuid + "/nix/overlay.nix"))
       (import (sources.validity + "/nix/overlay.nix"))
       (import ./overlay.nix)
-      (final: previous: { inherit (import sources.gitignore { inherit (final) lib; }) gitignoreSource; })
     ];
   config.allowUnfree = true;
 }

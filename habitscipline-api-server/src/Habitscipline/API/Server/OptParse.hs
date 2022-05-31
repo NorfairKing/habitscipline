@@ -87,11 +87,9 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "HABITSCIPLINE_API_SERVER_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . Env.auto) "PORT" (mE <> Env.help "The port to serve api requests on")
-      <*> Env.var (fmap Just . Env.str) "DATABASE" (mE <> Env.help "Path to the database file")
-  where
-    mE = Env.def Nothing
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var Env.auto "PORT" (Env.help "The port to serve api requests on"))
+      <*> optional (Env.var Env.str "DATABASE" (Env.help "Path to the database file"))
 
 getFlags :: IO Flags
 getFlags = customExecParser prefs_ flagsParser

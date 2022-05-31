@@ -183,14 +183,12 @@ environmentParser :: Env.Parser Env.Error Environment
 environmentParser =
   Env.prefixed "HABITSCIPLINE_" $
     Environment
-      <$> Env.var (fmap Just . Env.str) "CONFIG_FILE" (mE <> Env.help "Config file")
-      <*> Env.var (fmap Just . maybe (Left $ Env.unread "unable to parse base url") Right . parseBaseUrl) "SERVER_URL" (mE <> Env.help "Server base url")
-      <*> Env.var (fmap Just . left Env.unread . parseUsernameOrErr . T.pack) "USERNAME" (mE <> Env.help "Server account username")
-      <*> Env.var (fmap Just . Env.str) "PASSWORD" (mE <> Env.help "Server account password")
-      <*> Env.var (fmap Just . Env.str) "DATABASE" (mE <> Env.help "Path to the database")
-      <*> Env.var (fmap Just . Env.auto) "LOG_LEVEL" (mE <> Env.help "Minimal severity for log messages")
-  where
-    mE = Env.def Nothing
+      <$> optional (Env.var Env.str "CONFIG_FILE" (Env.help "Config file"))
+      <*> optional (Env.var (maybe (Left $ Env.unread "unable to parse base url") Right . parseBaseUrl) "SERVER_URL" (Env.help "Server base url"))
+      <*> optional (Env.var (left Env.unread . parseUsernameOrErr . T.pack) "USERNAME" (Env.help "Server account username"))
+      <*> optional (Env.var Env.str "PASSWORD" (Env.help "Server account password"))
+      <*> optional (Env.var Env.str "DATABASE" (Env.help "Path to the database"))
+      <*> optional (Env.var Env.auto "LOG_LEVEL" (Env.help "Minimal severity for log messages"))
 
 -- | The combination of a command with its specific flags and the flags for all commands
 data Arguments
