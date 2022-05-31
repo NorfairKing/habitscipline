@@ -1,6 +1,5 @@
 name:                habitscipline-tui
 version:             0.0.0.0
-license:             AllRightsReserved
 
 dependencies:
 - base >= 4.7 && < 5
