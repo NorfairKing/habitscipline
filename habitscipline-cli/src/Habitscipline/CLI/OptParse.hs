@@ -40,7 +40,7 @@ import Path.IO
 import Servant.Client
 
 data Instructions
-  = Instructions Dispatch Settings
+  = Instructions !Dispatch !Settings
   deriving (Show, Generic)
 
 getInstructions :: IO Instructions
@@ -52,11 +52,11 @@ getInstructions = do
 
 -- | A product type for the settings that are common across commands
 data Settings = Settings
-  { settingBaseUrl :: Maybe BaseUrl,
-    settingUsername :: Maybe Username,
-    settingPassword :: Maybe Text,
-    settingDbFile :: Path Abs File,
-    settingLogLevel :: LogLevel
+  { settingBaseUrl :: !(Maybe BaseUrl),
+    settingUsername :: !(Maybe Username),
+    settingPassword :: !(Maybe Text),
+    settingDbFile :: !(Path Abs File),
+    settingLogLevel :: !LogLevel
   }
   deriving (Show, Generic)
 
@@ -69,9 +69,9 @@ data Dispatch
   deriving (Show, Generic)
 
 data EntrySettings = EntrySettings
-  { entrySettingHabit :: Text,
-    entrySettingAmount :: Word,
-    entrySettingDay :: Day
+  { entrySettingHabit :: !Text,
+    entrySettingAmount :: !Word,
+    entrySettingDay :: !Day
   }
   deriving (Show, Generic)
 
@@ -121,11 +121,11 @@ getDefaultConfigFile = do
   resolveFile xdgConfigDir "config.yaml"
 
 data Configuration = Configuration
-  { configBaseUrl :: Maybe BaseUrl,
-    configUsername :: Maybe Username,
-    configPassword :: Maybe Text,
-    configDbFile :: Maybe FilePath,
-    configLogLevel :: Maybe LogLevel
+  { configBaseUrl :: !(Maybe BaseUrl),
+    configUsername :: !(Maybe Username),
+    configPassword :: !(Maybe Text),
+    configDbFile :: !(Maybe FilePath),
+    configLogLevel :: !(Maybe LogLevel)
   }
   deriving stock (Show, Eq, Generic)
   deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
@@ -166,12 +166,12 @@ getConfiguration Flags {..} Environment {..} =
 -- Do nothing clever here, just represent the relevant parts of the environment.
 -- For example, use 'Text', not 'SqliteConfig'.
 data Environment = Environment
-  { envConfigFile :: Maybe FilePath,
-    envBaseUrl :: Maybe BaseUrl,
-    envUsername :: Maybe Username,
-    envPassword :: Maybe Text,
-    envDbFile :: Maybe FilePath,
-    envLogLevel :: Maybe LogLevel
+  { envConfigFile :: !(Maybe FilePath),
+    envBaseUrl :: !(Maybe BaseUrl),
+    envUsername :: !(Maybe Username),
+    envPassword :: !(Maybe Text),
+    envDbFile :: !(Maybe FilePath),
+    envLogLevel :: !(Maybe LogLevel)
   }
   deriving (Show, Eq, Generic)
 
@@ -232,7 +232,7 @@ data Command
   = CommandRegister
   | CommandLogin
   | CommandSync
-  | CommandEntry EntryFlags
+  | CommandEntry !EntryFlags
   deriving (Show, Generic)
 
 parseCommand :: OptParse.Parser Command
@@ -264,9 +264,9 @@ parseCommandSync = OptParse.info parser modifier
     parser = pure CommandSync
 
 data EntryFlags = EntryFlags
-  { entryFlagHabit :: Text,
-    entryFlagAmount :: Word,
-    entryFlagDay :: Maybe Day
+  { entryFlagHabit :: !Text,
+    entryFlagAmount :: !Word,
+    entryFlagDay :: !(Maybe Day)
   }
   deriving (Show)
 
@@ -284,12 +284,12 @@ parseCommandEntry = OptParse.info parser modifier
 
 -- | The flags that are common across commands.
 data Flags = Flags
-  { flagConfigFile :: Maybe FilePath,
-    flagBaseUrl :: Maybe BaseUrl,
-    flagUsername :: Maybe Username,
-    flagPassword :: Maybe Text,
-    flagDbFile :: Maybe FilePath,
-    flagLogLevel :: Maybe LogLevel
+  { flagConfigFile :: !(Maybe FilePath),
+    flagBaseUrl :: !(Maybe BaseUrl),
+    flagUsername :: !(Maybe Username),
+    flagPassword :: !(Maybe Text),
+    flagDbFile :: !(Maybe FilePath),
+    flagLogLevel :: !(Maybe LogLevel)
   }
   deriving (Show, Eq, Generic)
 

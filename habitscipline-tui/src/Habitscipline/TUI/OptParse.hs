@@ -28,8 +28,8 @@ getSettings = do
   combineToSettings flags env config
 
 data Settings = Settings
-  { settingDbFile :: Path Abs File,
-    settingLogLevel :: LogLevel
+  { settingDbFile :: !(Path Abs File),
+    settingLogLevel :: !LogLevel
   }
   deriving (Show, Eq, Generic)
 
@@ -45,8 +45,8 @@ combineToSettings Flags {..} Environment {..} mConf = do
     mc f = mConf >>= f
 
 data Configuration = Configuration
-  { configDbFile :: Maybe FilePath,
-    configLogLevel :: Maybe LogLevel
+  { configDbFile :: !(Maybe FilePath),
+    configLogLevel :: !(Maybe LogLevel)
   }
   deriving (Show, Eq, Generic)
 
@@ -74,9 +74,9 @@ defaultConfigFile = do
   resolveFile xdgConfigDir "config.yaml"
 
 data Environment = Environment
-  { envConfigFile :: Maybe FilePath,
-    envDbFile :: Maybe FilePath,
-    envLogLevel :: Maybe LogLevel
+  { envConfigFile :: !(Maybe FilePath),
+    envDbFile :: !(Maybe FilePath),
+    envLogLevel :: !(Maybe LogLevel)
   }
   deriving (Show, Eq, Generic)
 
@@ -117,9 +117,9 @@ flagsParser =
         ]
 
 data Flags = Flags
-  { flagConfigFile :: Maybe FilePath,
-    flagDbFile :: Maybe FilePath,
-    flagLogLevel :: Maybe LogLevel
+  { flagConfigFile :: !(Maybe FilePath),
+    flagDbFile :: !(Maybe FilePath),
+    flagLogLevel :: !(Maybe LogLevel)
   }
   deriving (Show, Eq, Generic)
 

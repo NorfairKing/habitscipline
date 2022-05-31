@@ -26,9 +26,9 @@ getSettings = do
   combineToSettings flags env config
 
 data Settings = Settings
-  { settingPort :: Int,
-    settingDbFile :: Path Abs File,
-    settingSigningKeyFile :: Path Abs File
+  { settingPort :: !Int,
+    settingDbFile :: !(Path Abs File),
+    settingSigningKeyFile :: !(Path Abs File)
   }
   deriving (Show, Eq, Generic)
 
@@ -45,8 +45,8 @@ combineToSettings Flags {..} Environment {..} mConf = do
     mc f = mConf >>= f
 
 data Configuration = Configuration
-  { configPort :: Maybe Int,
-    configDbFile :: Maybe FilePath
+  { configPort :: !(Maybe Int),
+    configDbFile :: !(Maybe FilePath)
   }
   deriving (Show, Eq, Generic)
 
@@ -74,9 +74,9 @@ defaultConfigFile = do
   resolveFile xdgConfigDir "config.yaml"
 
 data Environment = Environment
-  { envConfigFile :: Maybe FilePath,
-    envPort :: Maybe Int,
-    envDbFile :: Maybe FilePath
+  { envConfigFile :: !(Maybe FilePath),
+    envPort :: !(Maybe Int),
+    envDbFile :: !(Maybe FilePath)
   }
   deriving (Show, Eq, Generic)
 
@@ -116,9 +116,9 @@ flagsParser =
         ]
 
 data Flags = Flags
-  { flagConfigFile :: Maybe FilePath,
-    flagPort :: Maybe Int,
-    flagDbFile :: Maybe FilePath
+  { flagConfigFile :: !(Maybe FilePath),
+    flagPort :: !(Maybe Int),
+    flagDbFile :: !(Maybe FilePath)
   }
   deriving (Show, Eq, Generic)
 
