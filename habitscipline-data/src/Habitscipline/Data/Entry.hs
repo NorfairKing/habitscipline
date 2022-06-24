@@ -1,11 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Habitscipline.Data.Entry where
 
-import Data.Aeson
+import Autodocodec
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Map (Map)
 import qualified Data.Map as M
 import Data.Ord
@@ -23,24 +25,18 @@ data Entry = Entry
     entryDay :: !Day,
     entryAmount :: !Word
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Entry)
 
 instance Validity Entry
 
-instance FromJSON Entry where
-  parseJSON = withObject "Entry" $ \o ->
-    Entry
-      <$> o .: "habit"
-      <*> o .: "day"
-      <*> o .: "amount"
-
-instance ToJSON Entry where
-  toJSON Entry {..} =
-    object
-      [ "habit" .= entryHabit,
-        "day" .= entryDay,
-        "amount" .= entryAmount
-      ]
+instance HasCodec Entry where
+  codec =
+    object "Entry" $
+      Entry
+        <$> requiredField "habit" "habit uuid" .= entryHabit
+        <*> requiredField "day" "day on which the entry happened" .= entryDay
+        <*> requiredField "amount" "amount on the entry happened" .= entryAmount
 
 newtype EntryMap = EntryMap
   { unEntryMap :: Map Day Word

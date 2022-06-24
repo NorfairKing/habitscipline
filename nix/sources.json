@@ -59,28 +59,16 @@
         "url": "https://github.com/hercules-ci/gitignore.nix/archive/bff2832ec341cf30acb3a4d3e2e7f1f7b590116a.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
-    "home-manager": {
-        "branch": "release-21.11",
-        "description": "Manage a user environment using Nix  [maintainer=@rycee] ",
-        "homepage": "https://nix-community.github.io/home-manager/",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "d93d56ab8c1c6aa575854a79b9d2f69d491db7d0",
-        "sha256": "1fi27zabvqlyc2ggg7wr01j813gs46rswg1i897h9hqkbgqsjkny",
-        "type": "tarball",
-        "url": "https://github.com/nix-community/home-manager/archive/d93d56ab8c1c6aa575854a79b9d2f69d491db7d0.tar.gz",
-        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
-    },
     "mergeful": {
         "branch": "master",
         "description": "Safely synchronise values with safe merge conflicts.",
         "homepage": "http://hackage.haskell.org/package/mergeful",
         "owner": "NorfairKing",
         "repo": "mergeful",
-        "rev": "da86a924d6e23cbe07cd0804b45dddb173d743f8",
-        "sha256": "0vvywf23rqw2i8x4b39vcdl04rag75hdfkvibr86f4apgbkc1xiq",
+        "rev": "3b6beea95dcb8ce3db9c11fec0481cd10123476c",
+        "sha256": "1c2jypm2qcwvma4pdhang3rilly4ckilcpiwqx70y3dsgyjfd456",
         "type": "tarball",
-        "url": "https://github.com/NorfairKing/mergeful/archive/da86a924d6e23cbe07cd0804b45dddb173d743f8.tar.gz",
+        "url": "https://github.com/NorfairKing/mergeful/archive/3b6beea95dcb8ce3db9c11fec0481cd10123476c.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {

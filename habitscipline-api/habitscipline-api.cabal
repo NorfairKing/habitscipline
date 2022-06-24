@@ -18,6 +18,7 @@ library
       src
   build-depends:
       aeson
+    , autodocodec
     , base >=4.7 && <5
     , habitscipline-api-server-data
     , habitscipline-client-data

@@ -8,6 +8,7 @@ library:
   source-dirs: src
   dependencies:
     - aeson
+    - autodocodec
     - base16
     - bytestring
     - containers

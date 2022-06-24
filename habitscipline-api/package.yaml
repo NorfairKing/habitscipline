@@ -8,14 +8,15 @@ library:
   source-dirs: src
   dependencies:
     - aeson
-    - mergeful
+    - autodocodec
+    - habitscipline-client-data
+    - habitscipline-data
     - jose
+    - mergeful
     - persistent
     - servant
     - servant-auth
     - servant-auth-server
-    - habitscipline-client-data
-    - habitscipline-data
     - habitscipline-api-server-data
     - text
     - validity

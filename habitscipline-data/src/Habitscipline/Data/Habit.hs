@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -6,10 +7,13 @@
 
 module Habitscipline.Data.Habit where
 
-import Data.Aeson
+import Autodocodec
+import Control.Arrow (left)
+import Data.Aeson (FromJSON, ToJSON)
 import Data.ByteString (ByteString)
 import Data.Proxy
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.UUID.Typed
 import Data.Validity
 import Data.Validity.Text ()
@@ -37,56 +41,46 @@ data Habit = Habit
     habitUnit :: !Text, -- Trainings, Grams of sugar, ...
     habitGoal :: !Goal
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Habit)
 
 instance Validity Habit
 
-instance FromJSON Habit where
-  parseJSON = withObject "Habit" $ \o ->
-    Habit
-      <$> o .: "uuid"
-      <*> o .: "name"
-      <*> o .:? "description"
-      <*> o .: "unit"
-      <*> o .: "goal"
-
-instance ToJSON Habit where
-  toJSON Habit {..} =
-    object
-      [ "uuid" .= habitUuid,
-        "name" .= habitName,
-        "description" .= habitDescription,
-        "unit" .= habitUnit,
-        "goal" .= habitGoal
-      ]
+instance HasCodec Habit where
+  codec =
+    object "Habit" $
+      Habit
+        <$> requiredField "uuid" "habit uuid" .= habitUuid
+        <*> requiredField "name" "habit name" .= habitName
+        <*> optionalField "description" "habit description" .= habitDescription
+        <*> requiredField "unit" "unit of the habit entries" .= habitUnit
+        <*> requiredField "goal" "habit goal" .= habitGoal
 
 data HabitType = PositiveHabit | NegativeHabit
-  deriving (Show, Eq, Ord, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec HabitType)
 
 instance Validity HabitType
 
-instance FromJSON HabitType
-
-instance ToJSON HabitType
+instance HasCodec HabitType where
+  codec = bimapCodec parseHabitType renderHabitType codec
 
 renderHabitType :: HabitType -> Text
 renderHabitType = \case
   PositiveHabit -> "Positive"
   NegativeHabit -> "Negative"
 
-parseHabitType :: Text -> Maybe HabitType
+parseHabitType :: Text -> Either String HabitType
 parseHabitType = \case
-  "Positive" -> Just PositiveHabit
-  "Negative" -> Just NegativeHabit
-  _ -> Nothing
+  "Positive" -> Right PositiveHabit
+  "Negative" -> Right NegativeHabit
+  _ -> Left "Unknown habit type"
 
 instance PersistField HabitType where
   toPersistValue = toPersistValue . renderHabitType
   fromPersistValue pv = do
     t <- fromPersistValue pv
-    case parseHabitType t of
-      Nothing -> Left $ "Unknown habit type: " <> t
-      Just ht -> pure ht
+    left T.pack $ parseHabitType t
 
 instance PersistFieldSql HabitType where
   sqlType Proxy = sqlType (Proxy :: Proxy Text)
@@ -97,24 +91,21 @@ data Goal = Goal
     goalNumerator :: !Word, -- How many of the unit
     goalDenominator :: !Word -- How many days
   }
-  deriving (Show, Eq, Ord, Generic)
+  deriving stock (Show, Eq, Ord, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Goal)
 
 instance Validity Goal where
-  validate g@Goal {..} = mconcat [genericValidate g, declare "The denominator is not zero" $ goalDenominator > 0]
-
-instance FromJSON Goal where
-  parseJSON = withObject "Goal" $ \o ->
-    Goal
-      <$> o .: "type"
-      <*> o .: "boolean"
-      <*> o .: "numerator"
-      <*> o .: "denominator"
-
-instance ToJSON Goal where
-  toJSON Goal {..} =
-    object
-      [ "type" .= goalType,
-        "boolean" .= goalBoolean,
-        "numerator" .= goalNumerator,
-        "denominator" .= goalDenominator
+  validate g@Goal {..} =
+    mconcat
+      [ genericValidate g,
+        declare "The denominator is not zero" $ goalDenominator > 0
       ]
+
+instance HasCodec Goal where
+  codec =
+    object "Goal" $
+      Goal
+        <$> requiredField "type" "habit type" .= goalType
+        <*> requiredField "boolean" "whether the habit is boolean" .= goalBoolean
+        <*> requiredField "numerator" "How many of the unit" .= goalNumerator
+        <*> requiredField "denominator" "How many days" .= goalDenominator

@@ -40,7 +40,7 @@ extra-deps:
   - genvalidity-appendful
 
 - github: NorfairKing/mergeful
-  commit: da86a924d6e23cbe07cd0804b45dddb173d743f8
+  commit: 3b6beea95dcb8ce3db9c11fec0481cd10123476c
   subdirs:
   - mergeful
   - mergeful-persistent

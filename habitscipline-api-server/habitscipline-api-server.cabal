@@ -6,17 +6,7 @@ cabal-version: 1.12
 
 name:           habitscipline-api-server
 version:        0.0.0.0
-homepage:       https://github.com/NorfairKing/habitscipline#readme
-bug-reports:    https://github.com/NorfairKing/habitscipline/issues
-author:         Tom Sydney Kerckhove
-maintainer:     syd@cs-syd.eu
-copyright:      Copyright (c) 2020 Tom Sydney Kerckhove
-license:        AllRightsReserved
 build-type:     Simple
-
-source-repository head
-  type: git
-  location: https://github.com/NorfairKing/habitscipline
 
 library
   exposed-modules:
