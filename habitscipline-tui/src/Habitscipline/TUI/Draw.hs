@@ -5,7 +5,6 @@
 module Habitscipline.TUI.Draw where
 
 import Brick.AttrMap
-import Brick.Markup
 import Brick.Types
 import Brick.Util
 import Brick.Widgets.Border
@@ -17,7 +16,6 @@ import Cursor.Simple.List.NonEmpty
 import Cursor.Text
 import Data.List
 import qualified Data.Map as M
-import qualified Data.Text as T
 import Data.Time
 import Graphics.Vty.Attributes
 import Habitscipline.Data
@@ -228,27 +226,27 @@ drawHabitDescription Habit {..} =
           hBox [str "Description: ", withAttr descriptionAttr $ maybe emptyWidget txt habitDescription],
           hBox
             [ str "Goal: ",
-              markup $
-                mconcat $
-                  case goalType of
-                    PositiveHabit ->
-                      [ "I want to achieve ",
-                        T.pack (show goalNumerator) @? numeratorAttr,
-                        " ",
-                        habitUnit @? unitAttr,
-                        " every ",
-                        T.pack (show goalDenominator) @? denominatorAttr,
-                        " days."
-                      ]
-                    NegativeHabit ->
-                      [ "I want to have at most ",
-                        T.pack (show goalNumerator) @? numeratorAttr,
-                        " ",
-                        habitUnit @? unitAttr,
-                        " every ",
-                        T.pack (show goalDenominator) @? denominatorAttr,
-                        " days."
-                      ]
+              case goalType of
+                PositiveHabit ->
+                  hBox
+                    [ str "I want to achieve ",
+                      withAttr numeratorAttr $ str $ show goalNumerator,
+                      str " ",
+                      withAttr unitAttr $ txt habitUnit,
+                      str " every ",
+                      withAttr denominatorAttr $ str $ show goalDenominator,
+                      str " days."
+                    ]
+                NegativeHabit ->
+                  hBox
+                    [ str "I want to have at most ",
+                      withAttr numeratorAttr $ str $ show goalNumerator,
+                      str " ",
+                      withAttr unitAttr $ txt habitUnit,
+                      str " every ",
+                      withAttr denominatorAttr $ str $ show goalDenominator,
+                      str " days."
+                    ]
             ]
         ]
 
@@ -298,27 +296,27 @@ drawNewHabitState nhs@NewHabitState {..} =
                       withAttr denominatorAttr $ textWithSelection SelectGoalDenominator newHabitStateGoalDenominator
                     ],
                 padTop (Pad 1) $
-                  markup $
-                    mconcat $
-                      case newHabitStateGoalType of
-                        PositiveHabit ->
-                          [ "I want to achieve ",
-                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                            " ",
-                            rebuildTextCursor newHabitStateUnit @? unitAttr,
-                            " every ",
-                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                            " days."
-                          ]
-                        NegativeHabit ->
-                          [ "I want to have at most ",
-                            rebuildTextCursor newHabitStateGoalNumerator @? numeratorAttr,
-                            " ",
-                            rebuildTextCursor newHabitStateUnit @? unitAttr,
-                            " every ",
-                            rebuildTextCursor newHabitStateGoalDenominator @? denominatorAttr,
-                            " days."
-                          ],
+                  case newHabitStateGoalType of
+                    PositiveHabit ->
+                      hBox
+                        [ str "I want to achieve ",
+                          withAttr numeratorAttr $ txt $ rebuildTextCursor newHabitStateGoalNumerator,
+                          str " ",
+                          withAttr unitAttr $ txt $ rebuildTextCursor newHabitStateUnit,
+                          str " every ",
+                          withAttr denominatorAttr $ txt $ rebuildTextCursor newHabitStateGoalDenominator,
+                          str " days."
+                        ]
+                    NegativeHabit ->
+                      hBox
+                        [ str "I want to have at most ",
+                          withAttr numeratorAttr $ txt $ rebuildTextCursor newHabitStateGoalNumerator,
+                          str " ",
+                          withAttr unitAttr $ txt $ rebuildTextCursor newHabitStateUnit,
+                          str " every ",
+                          withAttr denominatorAttr $ txt $ rebuildTextCursor newHabitStateGoalDenominator,
+                          str " days."
+                        ],
                 case newHabitStateCompleteHabit undefined nhs of
                   Left t -> withDefAttr errorAttr $ borderWithLabel (str "[ Error ]") $ padLeftRight 1 $ txt t
                   Right _ -> emptyWidget,

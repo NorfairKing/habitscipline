@@ -8,6 +8,8 @@ library:
   source-dirs: src
   dependencies:
   - async
+  - autodocodec
+  - autodocodec-yaml
   - brick
   - containers
   - cursor
@@ -30,7 +32,6 @@ library:
   - typed-uuid
   - vty
   - yaml
-  - yamlparse-applicative
 
 executables:
   habitscipline-tui:

@@ -8,11 +8,16 @@ library:
   source-dirs: src
   dependencies:
     - aeson
-    - mergeful
-    - mergeful-persistent
+    - autodocodec
+    - autodocodec-yaml
     - bytestring
     - envparse
+    - habitscipline-api
+    - habitscipline-api-server-data
+    - habitscipline-data
     - jose
+    - mergeful
+    - mergeful-persistent
     - monad-logger
     - mtl
     - optparse-applicative
@@ -25,15 +30,11 @@ library:
     - persistent-template
     - servant-auth-server
     - servant-server
-    - habitscipline-api
-    - habitscipline-data
-    - habitscipline-api-server-data
     - text
     - time
     - wai
     - warp
     - yaml
-    - yamlparse-applicative
 
 executables:
   habitscipline-api-server:

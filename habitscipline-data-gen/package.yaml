@@ -30,13 +30,13 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - autodocodec
     - containers
     - genvalidity-sydtest
     - genvalidity-sydtest-aeson
     - genvalidity-sydtest-persistent
     - habitscipline-data
     - habitscipline-data-gen
-    - sydtest
     - path
     - path-io
-    - yamlparse-applicative
+    - sydtest

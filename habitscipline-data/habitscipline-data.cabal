@@ -42,5 +42,4 @@ library
     , validity-text
     , validity-time
     , yaml
-    , yamlparse-applicative
   default-language: Haskell2010

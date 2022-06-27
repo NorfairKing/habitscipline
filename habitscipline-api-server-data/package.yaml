@@ -9,6 +9,7 @@ library:
   dependencies:
     - aeson
     - autodocodec
+    - autodocodec
     - habitscipline-data
     - mergeful
     - mergeful-persistent
@@ -23,4 +24,3 @@ library:
     - validity-persistent
     - validity-text
     - validity-time
-    - yamlparse-applicative

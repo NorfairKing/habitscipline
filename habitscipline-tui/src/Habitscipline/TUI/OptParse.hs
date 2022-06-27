@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -6,11 +7,14 @@
 
 module Habitscipline.TUI.OptParse where
 
+import Autodocodec
+import Autodocodec.Yaml
 import Control.Applicative
 import Control.Monad.Logger
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Yaml
+import qualified Data.Text.Encoding as TE
+import Data.Yaml (FromJSON, ToJSON)
 import qualified Env
 import GHC.Generics (Generic)
 import Habitscipline.CLI.OptParse (getDefaultClientDatabase)
@@ -18,7 +22,6 @@ import Options.Applicative as OptParse
 import qualified Options.Applicative.Help as OptParse (string)
 import Path
 import Path.IO
-import YamlParse.Applicative as YamlParse
 
 getSettings :: IO Settings
 getSettings = do
@@ -48,25 +51,23 @@ data Configuration = Configuration
   { configDbFile :: !(Maybe FilePath),
     configLogLevel :: !(Maybe LogLevel)
   }
-  deriving (Show, Eq, Generic)
+  deriving stock (Show, Eq, Generic)
+  deriving (FromJSON, ToJSON) via (Autodocodec Configuration)
 
-instance FromJSON Configuration where
-  parseJSON = viaYamlSchema
-
-instance YamlSchema Configuration where
-  yamlSchema =
-    objectParser "Configuration" $
+instance HasCodec Configuration where
+  codec =
+    object "Configuration" $
       Configuration
-        <$> optionalField "database" "The path to the database"
-        <*> optionalFieldWith "log-level" "The minimal severity for log messages" viaRead
+        <$> optionalField "database" "The path to the database" .= configDbFile
+        <*> optionalField "log-level" "The minimal severity for log messages" .= configLogLevel
 
 getConfiguration :: Flags -> Environment -> IO (Maybe Configuration)
 getConfiguration Flags {..} Environment {..} =
   case flagConfigFile <|> envConfigFile of
-    Nothing -> defaultConfigFile >>= YamlParse.readConfigFile
+    Nothing -> defaultConfigFile >>= readYamlConfigFile
     Just cf -> do
       afp <- resolveFile' cf
-      YamlParse.readConfigFile afp
+      readYamlConfigFile afp
 
 defaultConfigFile :: IO (Path Abs File)
 defaultConfigFile = do
@@ -113,7 +114,7 @@ flagsParser =
         [ Env.helpDoc environmentParser,
           "",
           "Configuration file format:",
-          T.unpack (YamlParse.prettyColourisedSchemaDoc @Configuration)
+          T.unpack (TE.decodeUtf8 (renderColouredSchemaViaCodec @Configuration))
         ]
 
 data Flags = Flags
