@@ -5,6 +5,8 @@
 - ignore:
     name: "Use String"
 - ignore:
+    name: "Use void"
+- ignore:
     name: "Use ++"
 - ignore:
     name: "Use tuple-section"
